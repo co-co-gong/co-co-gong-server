@@ -25,8 +25,7 @@ COPY gradlew /server/
 COPY build.gradle /server/
 COPY settings.gradle /server/
 
-CMD ["tail" , "-f" , "/dev/null"]
-
 # RUN bash -c "./gradlew build"
-#
 # CMD ["java" "-jar" "build/libs/server-*-SNAPSHOT.jar"]
+
+CMD ["./gradlew", "bootRun"]
