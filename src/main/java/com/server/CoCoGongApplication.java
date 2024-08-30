@@ -1,4 +1,4 @@
-package com.example.server;
+package com.server;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class CoCoGongApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(CoCoGongApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(CoCoGongApplication.class, args);
+    }
 
 }
