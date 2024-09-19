@@ -1,4 +1,4 @@
-package com.server.controller;
+package com.server.domain.user.controller;
 
 import java.util.Optional;
 
@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.server.model.User;
-import com.server.service.UserService;
+import com.server.domain.user.entity.User;
+import com.server.domain.user.service.UserService;
 
 @RestController
 @RequestMapping("/api/users")
