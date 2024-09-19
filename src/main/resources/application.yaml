@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: co-co-gong-server
+  profiles:
+    group:
+      test:
+        - test
+      deploy:
+        - deploy
+    active: deploy

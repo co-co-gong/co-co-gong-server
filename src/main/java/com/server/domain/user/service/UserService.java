@@ -1,12 +1,12 @@
-package com.server.service;
+package com.server.domain.user.service;
 
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.server.model.User;
-import com.server.repository.UserRepository;
+import com.server.domain.user.entity.User;
+import com.server.domain.user.repository.UserRepository;
 
 @Service
 public class UserService {

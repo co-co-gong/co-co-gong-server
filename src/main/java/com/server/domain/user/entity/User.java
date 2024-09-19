@@ -1,4 +1,4 @@
-package com.server.model;
+package com.server.domain.user.entity;
 
 import java.time.LocalDateTime;
 
