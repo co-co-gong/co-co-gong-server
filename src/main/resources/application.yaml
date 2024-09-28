@@ -7,4 +7,6 @@ spring:
         - test
       deploy:
         - deploy
-    active: deploy
+    active: test
+  config:
+    import: optional:file:.env[.properties]
