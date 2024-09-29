@@ -39,7 +39,6 @@ public class OAuthLoginController {
      */
     @GetMapping("/login/oauth2/code/github")
     public GithubDto githubLogin(@RequestParam String code) {
-        //log.info("sajkfjsakldjklasjdklsajdlkjaslkdja");
         RestTemplate restTemplate = new RestTemplate();
 
         ResponseEntity<OAuthInfo> response = restTemplate.exchange("https://github.com/login/oauth/access_token",
