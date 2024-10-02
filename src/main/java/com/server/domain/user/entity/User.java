@@ -1,19 +1,31 @@
 package com.server.domain.user.entity;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
 
 @Entity
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "users")
 public class User {
 
     @Id
-    @Column(name = "username", nullable = false, unique = true)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id")
+    private Long id;
+
+    @Column(name = "user_name", nullable = false, unique = true)
     private String username;
+
+    @Column(name="user_thumbnail")
+    private String thumbnail;
 
     @Column(name = "email", nullable = false, unique = true)
     private String email;
@@ -25,45 +37,15 @@ public class User {
     private String githubToken;
 
     @Column(name = "created_at", nullable = false)
+    @CreatedDate
     private LocalDateTime createdAt;
 
-    public String getUsername() {
-        return username;
-    }
 
-    public void setUsername(String username) {
+    public User(String username, String thumbnail, String email, String oauth, String githubToken){
         this.username = username;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
         this.email = email;
-    }
-
-    public String getOauth() {
-        return oauth;
-    }
-
-    public void setOauth(String oauth) {
+        this.thumbnail = thumbnail;
         this.oauth = oauth;
-    }
-
-    public String getGithubToken() {
-        return githubToken;
-    }
-
-    public void setGithubToken(String githubToken) {
         this.githubToken = githubToken;
     }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
     }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-}
