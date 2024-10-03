@@ -1,13 +1,18 @@
 package com.server.domain.user.entity;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.CreatedDate;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
 
 @Entity
 @Getter
@@ -24,7 +29,7 @@ public class User {
     @Column(name = "user_name", nullable = false, unique = true)
     private String username;
 
-    @Column(name="user_thumbnail")
+    @Column(name = "user_thumbnail")
     private String thumbnail;
 
     @Column(name = "email", nullable = false, unique = true)
@@ -40,12 +45,11 @@ public class User {
     @CreatedDate
     private LocalDateTime createdAt;
 
-
-    public User(String username, String thumbnail, String email, String oauth, String githubToken){
+    public User(String username, String thumbnail, String email, String oauth, String githubToken) {
         this.username = username;
         this.email = email;
         this.thumbnail = thumbnail;
         this.oauth = oauth;
         this.githubToken = githubToken;
     }
-    }
+}
