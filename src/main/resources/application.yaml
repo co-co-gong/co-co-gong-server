@@ -10,3 +10,9 @@ spring:
       deploy:
         - deploy
     active: deploy
+springdoc:
+  swagger-ui:
+    path: /swagger
+  api-docs:
+    path: /api-docs
+  paths-to-match: /**
