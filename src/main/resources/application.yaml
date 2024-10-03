@@ -3,10 +3,10 @@ spring:
     name: co-co-gong-server
   profiles:
     group:
+      local:
+        - local
       test:
         - test
       deploy:
         - deploy
-    active: test
-  config:
-    import: optional:file:.env[.properties]
+    active: deploy
