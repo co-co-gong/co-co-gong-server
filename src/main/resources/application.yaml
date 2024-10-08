@@ -3,10 +3,16 @@ spring:
     name: co-co-gong-server
   profiles:
     group:
+      local:
+        - local
       test:
         - test
       deploy:
         - deploy
-    active: test
-  config:
-    import: optional:file:.env[.properties]
+    active: deploy
+springdoc:
+  swagger-ui:
+    path: /swagger
+  api-docs:
+    path: /api-docs
+  paths-to-match: /**

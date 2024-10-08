@@ -3,10 +3,12 @@ services:
     build: .
     environment:
       POSTGRES_HOST: postgres
-      POSTGRES_PORT: "5432"
+      POSTGRES_PORT: 5432
       POSTGRES_USER: co-co-gong
       POSTGRES_PASSWORD: mypassword
       POSTGRES_DB: main
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
     ports:
       - "8080:8080"
     depends_on:
