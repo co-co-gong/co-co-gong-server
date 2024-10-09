@@ -2,6 +2,8 @@ package com.server.domain.user.entity;
 
 import java.time.LocalDateTime;
 
+import lombok.Builder;
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.data.annotation.CreatedDate;
 
 import jakarta.persistence.Column;
@@ -26,13 +28,13 @@ public class User {
     @Column(name = "user_id")
     private Long id;
 
-    @Column(name = "user_name", nullable = false, unique = true)
+    @Column(name = "username", nullable = false, unique = true)
     private String username;
 
     @Column(name = "user_thumbnail")
     private String thumbnail;
 
-    @Column(name = "email", nullable = false, unique = true)
+    @Column(name = "email", nullable = true)
     private String email;
 
     @Column(name = "oauth", nullable = false)
@@ -42,9 +44,10 @@ public class User {
     private String githubToken;
 
     @Column(name = "created_at", nullable = false)
-    @CreatedDate
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @Builder
     public User(String username, String thumbnail, String email, String oauth, String githubToken) {
         this.username = username;
         this.email = email;
