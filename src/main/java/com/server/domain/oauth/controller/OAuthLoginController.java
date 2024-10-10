@@ -23,6 +23,8 @@ import java.util.Collections;
 @RequiredArgsConstructor
 public class OAuthLoginController {
 
+
+
     private final UserService userService;
 
     @Value("${spring.security.oauth2.client.registration.github.client-id}")
@@ -30,7 +32,16 @@ public class OAuthLoginController {
     @Value("${spring.security.oauth2.client.registration.github.client-secret}")
     private String clientSecret;
 
-
+    // 새로 추가된 로그인 시작점
+    @GetMapping("/login")
+    public ResponseEntity<String> login() {
+        String githubAuthUrl = "https://github.com/login/oauth/authorize" +
+                "?client_id=" + clientId +
+                "&redirect_uri=http://localhost:8080/login/oauth2/code/github";
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .header(HttpHeaders.LOCATION, githubAuthUrl)
+                .build();
+    }
 
     /**
      * 깃허브 로그인 인증 시 redirect 되는 것 GET
@@ -38,25 +49,41 @@ public class OAuthLoginController {
      * @return
      */
     @GetMapping("/login/oauth2/code/github")
-    public GithubDto githubLogin(@RequestParam String code) {
-        RestTemplate restTemplate = new RestTemplate();
+    public ResponseEntity<?> githubLogin(@RequestParam String code) {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
 
-        ResponseEntity<OAuthInfo> response = restTemplate.exchange("https://github.com/login/oauth/access_token",
-                HttpMethod.POST,
-                getAccessToken(code),
-                OAuthInfo.class);
-        String accessToken = response.getBody().getAccessToken();
+            ResponseEntity<OAuthInfo> response = restTemplate.exchange("https://github.com/login/oauth/access_token",
+                    HttpMethod.POST,
+                    getAccessToken(code),
+                    OAuthInfo.class);
+            String accessToken = response.getBody().getAccessToken();
 
-        ResponseEntity<GithubDto> response1 = restTemplate.exchange("https://api.github.com/user"
-                , HttpMethod.GET
-                , getUserInfo(accessToken)
-                , GithubDto.class);
+            ResponseEntity<GithubDto> userInfoResponse = restTemplate.exchange("https://api.github.com/user",
+                    HttpMethod.GET,
+                    getUserInfo(accessToken),
+                    GithubDto.class);
 
-        GithubDto userInfo = response1.getBody();
-        log.info("email: "+userInfo.getUsername());
-        //userService.login(userInfo, access_token);
-        return userInfo;
+            GithubDto githubDto = userInfoResponse.getBody();
+            log.info("Received user info. Username: " + githubDto.getUsername());
+
+            // 로그인 또는 회원가입 처리 및 JWT 토큰 생성
+            String jwtToken = userService.loginOrRegister(githubDto, accessToken);
+            log.info("jwt Token: "+jwtToken);
+            // JWT 토큰을 응답 헤더에 추가
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Authorization", "Bearer " + jwtToken);
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body("Login successful");
+        } catch (Exception e) {
+            log.error("Error during GitHub OAuth process", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during the OAuth process");
+        }
     }
+
+
 
     private HttpEntity<MultiValueMap<String,String>> getAccessToken(String code) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -67,6 +94,9 @@ public class OAuthLoginController {
         HttpHeaders headers = new HttpHeaders();
         return new HttpEntity<>(params,headers);
     }
+
+
+
 
     /**
      * 로그인 인증 후 받은 code로 post 요청을 보내면 access_token을 응답받는다. 이를 GET 하기 위한 Controller

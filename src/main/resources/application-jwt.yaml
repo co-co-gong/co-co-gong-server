@@ -1,0 +1,4 @@
+jwt:
+  secret: ${JWT_SECRET_KEY}
+
+  token-validity-in-seconds: 86400

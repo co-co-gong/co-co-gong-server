@@ -15,4 +15,5 @@ public class GithubDto {
     private String email;
     @JsonProperty("avatar_url")
     private String thumbnail;
+
 }
