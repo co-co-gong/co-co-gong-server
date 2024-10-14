@@ -5,11 +5,14 @@ spring:
     group:
       local:
         - local
+        - jwt
       test:
         - test
+        - jwt
       deploy:
         - deploy
-    active: deploy
+        - jwt
+    active: local
 springdoc:
   swagger-ui:
     path: /swagger
