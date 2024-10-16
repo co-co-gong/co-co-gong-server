@@ -17,4 +17,5 @@ public class UserDto {
     private OAuth oauth;
     private String githubToken;
     private LocalDateTime createdAt;
+    private String refreshToken;
 }
