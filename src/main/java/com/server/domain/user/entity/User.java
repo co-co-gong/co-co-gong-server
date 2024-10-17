@@ -47,6 +47,9 @@ public class User {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @Column(name = "refresh_token", length = 512)
+    private String refreshToken;
+
     @Builder
     public User(String username, String thumbnail, String email, String oauth, String githubToken) {
         this.username = username;
@@ -54,5 +57,9 @@ public class User {
         this.thumbnail = thumbnail;
         this.oauth = oauth;
         this.githubToken = githubToken;
+    }
+
+    public void updateRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 }
