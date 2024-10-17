@@ -12,7 +12,7 @@ spring:
       deploy:
         - deploy
         - jwt
-    active: local
+    active: deploy
 springdoc:
   swagger-ui:
     path: /swagger
