@@ -9,6 +9,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -42,9 +44,17 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public User findByUserName(String userName) {
-        return userRepository.findByUsername(userName)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public Optional<User> findByUserName(String userName) {
+        return userRepository.findByUsername(userName);
     }
 
+    public User updateEmail(User user, String email) {
+        user.updateEmail(email);
+        return userRepository.save(user);
+
+    }
+
+    public void deleteUser(User user) {
+        userRepository.delete(user);
+    }
 }
