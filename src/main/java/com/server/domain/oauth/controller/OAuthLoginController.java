@@ -17,6 +17,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Optional;
+
 @RestController
 @Slf4j
 @RequiredArgsConstructor
@@ -97,14 +99,16 @@ public class OAuthLoginController {
         String refreshToken = tokenDto.getRefreshToken();
 
         if (jwtService.validateToken(refreshToken)) {
-            String userName = jwtService.getUserNameFromToken(refreshToken);
-            User user = userService.findByUserName(userName);
-
-            if (user != null && refreshToken.equals(user.getRefreshToken())) {
-                String newAccessToken = jwtService.createAccessToken(userName);
-                TokenDto newTokenDto = new TokenDto(newAccessToken, refreshToken);
-                return ResponseEntity.ok(ApiResponseDto.success(newTokenDto));
+            String userName = jwtService.extractUserName(refreshToken).get();
+            Optional<User> user = userService.findByUserName(userName);
+            if(user.isPresent()){
+                if(refreshToken.equals(user.get().getRefreshToken())){
+                    String newAccessToken = jwtService.createAccessToken(userName);
+                    TokenDto newTokenDto = new TokenDto(newAccessToken, refreshToken);
+                    return ResponseEntity.ok(ApiResponseDto.success(newTokenDto));
+                }
             }
+
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
