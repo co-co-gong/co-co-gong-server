@@ -1,4 +1,4 @@
 #!/bin/bash
 
 ./gradlew build
-java -jar build/libs/*.jar
+java -jar build/libs/*SNAPSHOT.jar
