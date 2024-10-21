@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: zerohertzkr/dev:latest
+          env:
+            - name: POSTGRES_HOST
+              value: "postgres"
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: POSTGRES_PORT
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: POSTGRES_DB
+            - name: GITHUB_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: oauth-secret
+                  key: GITHUB_CLIENT_ID
+            - name: GITHUB_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: oauth-secret
+                  key: GITHUB_CLIENT_SECRET
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: JWT_SECRET_KEY
+          command:
+            - "sh"
+            - "-c"
+            - "tail -f /dev/null"
+          volumeMounts:
+            - mountPath: /home/zerohertz/workspace
+              name: backend-storage
+      volumes:
+        - name: backend-storage
+          hostPath:
+            path: /home/zerohertz/Zerohertz/co-co-gong-server
+            type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+spec:
+  ports:
+    - port: 8080
+  selector:
+    app: backend
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: co-co-gong
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`co-co-gong.zerohertz.xyz`)
+      kind: Rule
+      services:
+        - name: backend
+          port: 8080
+  tls:
+    certResolver: zerohertz-resolver
