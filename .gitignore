@@ -35,7 +35,10 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Credentials ###
 .env
+k8s/secrets.yaml
 
 ### Etc ###
 .DS_Store

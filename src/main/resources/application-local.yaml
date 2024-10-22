@@ -11,6 +11,7 @@ spring:
       client:
         registration:
           github:
+            redirect-uri: "http://localhost:8080"
             client-id: ${GITHUB_CLIENT_ID}
             client-secret: ${GITHUB_CLIENT_SECRET}
 

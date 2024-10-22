@@ -1,5 +1,22 @@
 package com.server.domain.oauth.controller;
 
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import com.server.domain.oauth.dto.GithubDto;
 import com.server.domain.oauth.dto.OAuthInfo;
@@ -8,14 +25,9 @@ import com.server.domain.user.service.UserService;
 import com.server.global.dto.ApiResponseDto;
 import com.server.global.dto.TokenDto;
 import com.server.global.jwt.JwtService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 @RestController
 @Slf4j
@@ -25,6 +37,8 @@ public class OAuthLoginController {
     private final UserService userService;
     private final JwtService jwtService;
 
+    @Value("${spring.security.oauth2.client.registration.github.redirect-uri}")
+    private String redirectUri;
     @Value("${spring.security.oauth2.client.registration.github.client-id}")
     private String clientId;
     @Value("${spring.security.oauth2.client.registration.github.client-secret}")
@@ -33,15 +47,12 @@ public class OAuthLoginController {
     // 새로 추가된 로그인 시작점
     @GetMapping("/login")
     public ResponseEntity<String> login() {
-        String githubAuthUrl = "https://github.com/login/oauth/authorize" +
-                "?client_id=" + clientId +
-                "&redirect_uri=http://localhost:8080/login/oauth2/code/github";
+        String githubAuthUrl = String.format("%s%s%s%s%s", "https://github.com/login/oauth/authorize?client_id=",
+                clientId, "&redirect_uri=", redirectUri, "/login/oauth2/code/github");
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.LOCATION, githubAuthUrl)
                 .build();
     }
-
-
 
     @GetMapping("/login/oauth2/code/github")
     public ResponseEntity<?> githubLogin(@RequestParam String code) {
@@ -53,8 +64,7 @@ public class OAuthLoginController {
                     "https://github.com/login/oauth/access_token",
                     HttpMethod.POST,
                     getAccessToken(code),
-                    OAuthInfo.class
-            );
+                    OAuthInfo.class);
             String githubAccessToken = response.getBody().getAccessToken();
 
             // GitHub 사용자 정보 요청
@@ -62,8 +72,7 @@ public class OAuthLoginController {
                     "https://api.github.com/user",
                     HttpMethod.GET,
                     getUserInfo(githubAccessToken),
-                    GithubDto.class
-            );
+                    GithubDto.class);
 
             GithubDto githubDto = userInfoResponse.getBody();
             log.info("Received user info. Username: " + githubDto.getUsername());
@@ -97,14 +106,16 @@ public class OAuthLoginController {
         String refreshToken = tokenDto.getRefreshToken();
 
         if (jwtService.validateToken(refreshToken)) {
-            String userName = jwtService.getUserNameFromToken(refreshToken);
-            User user = userService.findByUserName(userName);
-
-            if (user != null && refreshToken.equals(user.getRefreshToken())) {
-                String newAccessToken = jwtService.createAccessToken(userName);
-                TokenDto newTokenDto = new TokenDto(newAccessToken, refreshToken);
-                return ResponseEntity.ok(ApiResponseDto.success(newTokenDto));
+            String userName = jwtService.extractUserName(refreshToken).get();
+            Optional<User> user = userService.findByUserName(userName);
+            if (user.isPresent()) {
+                if (refreshToken.equals(user.get().getRefreshToken())) {
+                    String newAccessToken = jwtService.createAccessToken(userName);
+                    TokenDto newTokenDto = new TokenDto(newAccessToken, refreshToken);
+                    return ResponseEntity.ok(ApiResponseDto.success(newTokenDto));
+                }
             }
+
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
