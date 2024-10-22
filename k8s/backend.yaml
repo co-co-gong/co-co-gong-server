@@ -38,6 +38,11 @@ spec:
                 configMapKeyRef:
                   name: postgres-config
                   key: POSTGRES_DB
+            - name: GITHUB_REDIRECT_URI
+              valueFrom:
+                secretKeyRef:
+                  name: oauth-secret
+                  key: GITHUB_REDIRECT_URI
             - name: GITHUB_CLIENT_ID
               valueFrom:
                 secretKeyRef:
