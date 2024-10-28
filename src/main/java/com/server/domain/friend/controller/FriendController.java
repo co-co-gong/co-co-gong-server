@@ -37,7 +37,7 @@ public class FriendController {
     @Operation(summary = "친구 신청 생성", description = "친구 신청할 사용자의 이름을 입력하여 친구 신청 생성")
     public ResponseEntity<String> createFriendRequest(@RequestParam String receiptUsername,
             HttpServletRequest request) {
-        String requestUsername = jwtService.extractUserNameFromToken(request).get();
+        String requestUsername = jwtService.extractUsernameFromToken(request).get();
         friendService.createFriendRequest(requestUsername, receiptUsername);
         return ResponseEntity.status(HttpStatus.CREATED).body("Created");
     }
@@ -46,7 +46,7 @@ public class FriendController {
     @Operation(summary = "친구 내역 조회", description = "사용자 기준 신청 보낸 내역")
     public ResponseEntity<List<GetFriendOutDto>> getFriendRequest(@RequestParam(required = false) FriendState state,
             HttpServletRequest request) {
-        String username = jwtService.extractUserNameFromToken(request).get();
+        String username = jwtService.extractUsernameFromToken(request).get();
         List<GetFriendOutDto> getUserOutDtos = friendService.getRequestUser(username, state);
         return ResponseEntity.status(HttpStatus.OK).body(getUserOutDtos);
     }
@@ -55,7 +55,7 @@ public class FriendController {
     @Operation(summary = "친구 내역 조회", description = "사용자 기준 신청 받은 내역")
     public ResponseEntity<List<GetFriendOutDto>> getFriendReceipt(@RequestParam(required = false) FriendState state,
             HttpServletRequest request) {
-        String username = jwtService.extractUserNameFromToken(request).get();
+        String username = jwtService.extractUsernameFromToken(request).get();
         List<GetFriendOutDto> getUserOutDtos = friendService.getReceiptUser(username, state);
         return ResponseEntity.status(HttpStatus.OK).body(getUserOutDtos);
     }
@@ -64,7 +64,7 @@ public class FriendController {
     @Operation(summary = "친구 신청 취소", description = "친구 신청할 사용자의 이름을 입력하여 친구 신청 삭제")
     public ResponseEntity<String> deleteFriendRequest(@RequestParam String receiptUsername,
             HttpServletRequest request) {
-        String requestUsername = jwtService.extractUserNameFromToken(request).get();
+        String requestUsername = jwtService.extractUsernameFromToken(request).get();
         friendService.deleteFriendRequest(requestUsername, receiptUsername);
         return ResponseEntity.status(HttpStatus.OK).body("removed");
     }
@@ -73,7 +73,7 @@ public class FriendController {
     @Operation(summary = "친구 신청 승인", description = "친구 신청을 승인할 사용자의 이름을 입력하여 친구 신청 승인")
     public ResponseEntity<String> approveFriendRequest(@RequestParam String requestUsername,
             HttpServletRequest request) {
-        String receiptUsername = jwtService.extractUserNameFromToken(request).get();
+        String receiptUsername = jwtService.extractUsernameFromToken(request).get();
         friendService.approveFriendRequest(requestUsername, receiptUsername);
         return ResponseEntity.status(HttpStatus.OK).body("approved");
     }

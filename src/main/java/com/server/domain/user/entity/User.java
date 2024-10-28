@@ -2,9 +2,7 @@ package com.server.domain.user.entity;
 
 import java.time.LocalDateTime;
 
-import lombok.Builder;
 import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.data.annotation.CreatedDate;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,6 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -63,7 +62,7 @@ public class User {
         this.refreshToken = refreshToken;
     }
 
-    public void updateEmail(String email){
+    public void updateEmail(String email) {
         this.email = email;
     }
 }

@@ -106,11 +106,11 @@ public class OAuthLoginController {
         String refreshToken = tokenDto.getRefreshToken();
 
         if (jwtService.validateToken(refreshToken)) {
-            String userName = jwtService.extractUserName(refreshToken).get();
-            Optional<User> user = userService.findByUserName(userName);
+            String username = jwtService.extractUsername(refreshToken).get();
+            Optional<User> user = userService.findByUsername(username);
             if (user.isPresent()) {
                 if (refreshToken.equals(user.get().getRefreshToken())) {
-                    String newAccessToken = jwtService.createAccessToken(userName);
+                    String newAccessToken = jwtService.createAccessToken(username);
                     TokenDto newTokenDto = new TokenDto(newAccessToken, refreshToken);
                     return ResponseEntity.ok(ApiResponseDto.success(newTokenDto));
                 }

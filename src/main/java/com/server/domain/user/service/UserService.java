@@ -1,15 +1,16 @@
 package com.server.domain.user.service;
 
+import java.util.Optional;
 
-import com.server.domain.oauth.dto.GithubDto;
-import com.server.domain.user.entity.User;
-import com.server.domain.user.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import com.server.domain.oauth.dto.GithubDto;
+import com.server.domain.user.entity.User;
+import com.server.domain.user.repository.UserRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -32,20 +33,19 @@ public class UserService {
                 .githubToken(githubToken)
                 .build();
 
-
         return userRepository.save(newUser);
     }
 
     @Transactional
-    public void saveRefreshToken(String userName, String refreshToken) {
-        User user = userRepository.findByUsername(userName)
+    public void saveRefreshToken(String username, String refreshToken) {
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.updateRefreshToken(refreshToken);
         userRepository.save(user);
     }
 
-    public Optional<User> findByUserName(String userName) {
-        return userRepository.findByUsername(userName);
+    public Optional<User> findByUsername(String username) {
+        return userRepository.findByUsername(username);
     }
 
     public User updateEmail(User user, String email) {
