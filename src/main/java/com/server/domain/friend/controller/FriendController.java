@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.server.domain.friend.dto.GetFriendOutDto;
 import com.server.domain.friend.enums.FriendState;
 import com.server.domain.friend.service.FriendService;
-import com.server.domain.user.service.UserService;
 import com.server.global.dto.ApiResponseDto;
 import com.server.global.jwt.JwtService;
 
@@ -31,7 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 public class FriendController {
 
     private final JwtService jwtService;
-    private final UserService userService;
     private final FriendService friendService;
 
     @PostMapping("/request")

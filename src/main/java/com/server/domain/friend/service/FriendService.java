@@ -13,8 +13,10 @@ import com.server.domain.friend.mapper.FriendMapper;
 import com.server.domain.friend.repository.FriendRepository;
 import com.server.domain.user.entity.User;
 import com.server.domain.user.repository.UserRepository;
+import com.server.global.error.code.FriendErrorCode;
+import com.server.global.error.code.UserErrorCode;
+import com.server.global.error.exception.BusinessException;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -28,13 +30,13 @@ public class FriendService {
     public List<GetFriendOutDto> getRequestUser(String username, FriendState state) {
         List<Friend> friends;
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with username: " + username));
+                .orElseThrow(() -> new BusinessException(UserErrorCode.NOT_FOUND));
         if (state == null) {
             friends = friendRepository.findByRequestUser(user)
-                    .orElseThrow(() -> new EntityNotFoundException("User not found with username: " + username));
+                    .orElseThrow(() -> new BusinessException(FriendErrorCode.NOT_FOUND));
         } else {
             friends = friendRepository.findByRequestUserAndState(user, state)
-                    .orElseThrow(() -> new EntityNotFoundException("User not found with username: " + username));
+                    .orElseThrow(() -> new BusinessException(FriendErrorCode.NOT_FOUND));
         }
         List<GetFriendOutDto> getFriendOutDtos = friends.stream()
                 .map(friend -> friendMapper.toGetFriendOutDto(friend.getReceiptUser(), friend.getState()))
@@ -45,13 +47,13 @@ public class FriendService {
     public List<GetFriendOutDto> getReceiptUser(String username, FriendState state) {
         List<Friend> friends;
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with username: " + username));
+                .orElseThrow(() -> new BusinessException(UserErrorCode.NOT_FOUND));
         if (state == null) {
             friends = friendRepository.findByReceiptUser(user)
-                    .orElseThrow(() -> new EntityNotFoundException("User not found with username: " + username));
+                    .orElseThrow(() -> new BusinessException(FriendErrorCode.NOT_FOUND));
         } else {
             friends = friendRepository.findByReceiptUserAndState(user, state)
-                    .orElseThrow(() -> new EntityNotFoundException("User not found with username: " + username));
+                    .orElseThrow(() -> new BusinessException(FriendErrorCode.NOT_FOUND));
         }
         List<GetFriendOutDto> getFriendOutDtos = friends.stream()
                 .map(friend -> friendMapper.toGetFriendOutDto(friend.getRequestUser(), friend.getState()))
@@ -62,11 +64,9 @@ public class FriendService {
     @Transactional
     public Friend createFriendRequest(String requestUsername, String receiptUsername) {
         User requestUser = userRepository.findByUsername(requestUsername)
-                .orElseThrow(
-                        () -> new EntityNotFoundException("Request user not found with username: " + requestUsername));
+                .orElseThrow(() -> new BusinessException(UserErrorCode.NOT_FOUND));
         User receiptUser = userRepository.findByUsername(receiptUsername)
-                .orElseThrow(
-                        () -> new EntityNotFoundException("Receipt user not found with username: " + receiptUsername));
+                .orElseThrow(() -> new BusinessException(UserErrorCode.NOT_FOUND));
         Friend friend = Friend.builder()
                 .requestUser(requestUser)
                 .receiptUser(receiptUser)
@@ -77,40 +77,23 @@ public class FriendService {
 
     @Transactional
     public void deleteFriendRequest(String requestUsername, String receiptUsername) {
-        // requestUser와 receiptUser를 UserRepository에서 조회
         User requestUser = userRepository.findByUsername(requestUsername)
-                .orElseThrow(
-                        () -> new EntityNotFoundException("Request user not found with username: " +
-                                requestUsername));
+                .orElseThrow(() -> new BusinessException(UserErrorCode.NOT_FOUND));
         User receiptUser = userRepository.findByUsername(receiptUsername)
-                .orElseThrow(
-                        () -> new EntityNotFoundException("Receipt user not found with username: " +
-                                receiptUsername));
-        Friend friend = friendRepository.findByRequestUserAndReceiptUser(requestUser,
-                receiptUser)
-                .orElseThrow(
-                        () -> new EntityNotFoundException(
-                                "Friend list not found with username: " + requestUsername + ", " +
-                                        receiptUsername));
+                .orElseThrow(() -> new BusinessException(UserErrorCode.NOT_FOUND));
+        Friend friend = friendRepository.findByRequestUserAndReceiptUser(requestUser, receiptUser)
+                .orElseThrow(() -> new BusinessException(FriendErrorCode.NOT_FOUND));
         friend.setState(FriendState.REMOVED);
     }
 
     @Transactional
     public void approveFriendRequest(String requestUsername, String receiptUsername) {
         User requestUser = userRepository.findByUsername(requestUsername)
-                .orElseThrow(
-                        () -> new EntityNotFoundException("Request user not found with username: " +
-                                requestUsername));
+                .orElseThrow(() -> new BusinessException(UserErrorCode.NOT_FOUND));
         User receiptUser = userRepository.findByUsername(receiptUsername)
-                .orElseThrow(
-                        () -> new EntityNotFoundException("Receipt user not found with username: " +
-                                receiptUsername));
-        Friend friendRequested = friendRepository.findByRequestUserAndReceiptUser(requestUser,
-                receiptUser)
-                .orElseThrow(
-                        () -> new EntityNotFoundException(
-                                "Friend list not found with username: " + requestUsername + ", " +
-                                        receiptUsername));
+                .orElseThrow(() -> new BusinessException(UserErrorCode.NOT_FOUND));
+        Friend friendRequested = friendRepository.findByRequestUserAndReceiptUser(requestUser, receiptUser)
+                .orElseThrow(() -> new BusinessException(FriendErrorCode.NOT_FOUND));
         friendRequested.setState(FriendState.APPROVED);
         Friend friendApproved = Friend.builder()
                 .requestUser(receiptUser)
