@@ -89,7 +89,7 @@ public class OAuthLoginController {
 
             // 응답 생성
             TokenDto tokenDto = new TokenDto(accessToken, refreshToken);
-            ApiResponseDto<TokenDto> responseDto = ApiResponseDto.success(tokenDto);
+            ApiResponseDto<TokenDto> responseDto = ApiResponseDto.success(HttpStatus.OK.value(), tokenDto);
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
@@ -97,7 +97,8 @@ public class OAuthLoginController {
         } catch (Exception e) {
             log.error("Error during GitHub OAuth process", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponseDto.failure("An error occurred during the OAuth process"));
+                    .body(ApiResponseDto.error(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                            "An error occurred during the OAuth process"));
         }
     }
 
@@ -112,14 +113,14 @@ public class OAuthLoginController {
                 if (refreshToken.equals(user.get().getRefreshToken())) {
                     String newAccessToken = jwtService.createAccessToken(username);
                     TokenDto newTokenDto = new TokenDto(newAccessToken, refreshToken);
-                    return ResponseEntity.ok(ApiResponseDto.success(newTokenDto));
+                    return ResponseEntity.ok(ApiResponseDto.success(HttpStatus.OK.value(), newTokenDto));
                 }
             }
 
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ApiResponseDto.failure("Invalid refresh token"));
+                .body(ApiResponseDto.error(HttpStatus.UNAUTHORIZED.value(), "Invalid refresh token"));
     }
 
     private HttpEntity<MultiValueMap<String, String>> getAccessToken(String code) {

@@ -38,7 +38,10 @@ public class FriendController {
             HttpServletRequest request) {
         String requestUsername = jwtService.extractUsernameFromToken(request).get();
         friendService.createFriendRequest(requestUsername, receiptUsername);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDto.success("Created"));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponseDto.success(HttpStatus.CREATED.value(),
+                        String.format("A friend request from User '%s' to User '%s' has been created.",
+                                requestUsername, receiptUsername)));
     }
 
     @GetMapping("/request")
@@ -48,7 +51,7 @@ public class FriendController {
             HttpServletRequest request) {
         String username = jwtService.extractUsernameFromToken(request).get();
         List<GetFriendOutDto> getUserOutDtos = friendService.getRequestUser(username, state);
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDto.success(getUserOutDtos));
+        return ResponseEntity.ok().body(ApiResponseDto.success(HttpStatus.OK.value(), getUserOutDtos));
     }
 
     @GetMapping("/receipt")
@@ -58,7 +61,7 @@ public class FriendController {
             HttpServletRequest request) {
         String username = jwtService.extractUsernameFromToken(request).get();
         List<GetFriendOutDto> getUserOutDtos = friendService.getReceiptUser(username, state);
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDto.success(getUserOutDtos));
+        return ResponseEntity.ok().body(ApiResponseDto.success(HttpStatus.OK.value(), getUserOutDtos));
     }
 
     @DeleteMapping("/request")
@@ -67,15 +70,21 @@ public class FriendController {
             HttpServletRequest request) {
         String requestUsername = jwtService.extractUsernameFromToken(request).get();
         friendService.deleteFriendRequest(requestUsername, receiptUsername);
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDto.success("removed"));
+        return ResponseEntity.ok()
+                .body(ApiResponseDto.success(HttpStatus.OK.value(),
+                        String.format("The friend request from '%s' to '%s' has been deleted.",
+                                requestUsername, receiptUsername)));
     }
 
-    @PutMapping("/approve")
+    @PutMapping("/accept")
     @Operation(summary = "친구 신청 승인", description = "친구 신청을 승인할 사용자의 이름을 입력하여 친구 신청 승인")
     public ResponseEntity<ApiResponseDto<String>> approveFriendRequest(@RequestParam String requestUsername,
             HttpServletRequest request) {
         String receiptUsername = jwtService.extractUsernameFromToken(request).get();
         friendService.approveFriendRequest(requestUsername, receiptUsername);
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponseDto.success("approved"));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponseDto.success(HttpStatus.CREATED.value(),
+                        String.format("The friend request from User '%s' to User '%s' has been accepted.",
+                                requestUsername, receiptUsername)));
     }
 }

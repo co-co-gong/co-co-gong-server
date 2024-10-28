@@ -14,7 +14,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiResponseDto<Object>> handleFriendException(BusinessException e) {
-        return ResponseEntity.status(e.getStatus()).body(ApiResponseDto.failure(e.getMessage()));
+        return ResponseEntity.status(e.getStatus()).body(ApiResponseDto.error(e.getStatus(), e.getMessage()));
     }
 
 }
