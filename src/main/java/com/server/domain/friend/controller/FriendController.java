@@ -54,16 +54,6 @@ public class FriendController {
         return ResponseEntity.ok().body(ApiResponseDto.success(HttpStatus.OK.value(), getUserOutDtos));
     }
 
-    @GetMapping("/receipt")
-    @Operation(summary = "친구 내역 조회", description = "사용자 기준 신청 받은 내역")
-    public ResponseEntity<ApiResponseDto<List<GetFriendOutDto>>> getFriendReceipt(
-            @RequestParam(required = false) FriendState state,
-            HttpServletRequest request) {
-        String username = jwtService.extractUsernameFromToken(request).get();
-        List<GetFriendOutDto> getUserOutDtos = friendService.getReceiptUser(username, state);
-        return ResponseEntity.ok().body(ApiResponseDto.success(HttpStatus.OK.value(), getUserOutDtos));
-    }
-
     @DeleteMapping("/request")
     @Operation(summary = "친구 신청 취소", description = "친구 신청할 사용자의 이름을 입력하여 친구 신청 삭제")
     public ResponseEntity<ApiResponseDto<String>> deleteFriendRequest(@RequestParam String receiptUsername,
@@ -76,12 +66,22 @@ public class FriendController {
                                 requestUsername, receiptUsername)));
     }
 
-    @PutMapping("/accept")
+    @GetMapping("/receipt")
+    @Operation(summary = "친구 내역 조회", description = "사용자 기준 신청 받은 내역")
+    public ResponseEntity<ApiResponseDto<List<GetFriendOutDto>>> getFriendReceipt(
+            @RequestParam(required = false) FriendState state,
+            HttpServletRequest request) {
+        String username = jwtService.extractUsernameFromToken(request).get();
+        List<GetFriendOutDto> getUserOutDtos = friendService.getReceiptUser(username, state);
+        return ResponseEntity.ok().body(ApiResponseDto.success(HttpStatus.OK.value(), getUserOutDtos));
+    }
+
+    @PutMapping("/receipt")
     @Operation(summary = "친구 신청 승인", description = "친구 신청을 승인할 사용자의 이름을 입력하여 친구 신청 승인")
     public ResponseEntity<ApiResponseDto<String>> approveFriendRequest(@RequestParam String requestUsername,
             HttpServletRequest request) {
         String receiptUsername = jwtService.extractUsernameFromToken(request).get();
-        friendService.approveFriendRequest(requestUsername, receiptUsername);
+        friendService.acceptFriendRequest(requestUsername, receiptUsername);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponseDto.success(HttpStatus.CREATED.value(),
                         String.format("The friend request from User '%s' to User '%s' has been accepted.",
