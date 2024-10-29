@@ -12,6 +12,11 @@ import lombok.extern.slf4j.Slf4j;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(AuthException.class)
+    public ResponseEntity<ApiResponseDto<Object>> handleFriendException(AuthException e) {
+        return ResponseEntity.status(e.getStatus()).body(ApiResponseDto.error(e.getStatus(), e.getMessage()));
+    }
+
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiResponseDto<Object>> handleFriendException(BusinessException e) {
         return ResponseEntity.status(e.getStatus()).body(ApiResponseDto.error(e.getStatus(), e.getMessage()));

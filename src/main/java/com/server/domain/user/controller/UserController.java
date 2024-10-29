@@ -13,6 +13,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.server.domain.user.entity.User;
 import com.server.domain.user.service.UserService;
+import com.server.global.dto.ApiResponseDto;
+import com.server.global.error.code.AuthErrorCode;
+import com.server.global.error.code.UserErrorCode;
+import com.server.global.error.exception.AuthException;
+import com.server.global.error.exception.BusinessException;
 import com.server.global.jwt.JwtService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,23 +35,20 @@ public class UserController {
 
     // 내 정보
     @GetMapping("/me")
-    public ResponseEntity<?> getUser(HttpServletRequest request) {
+    public ResponseEntity<ApiResponseDto<User>> getUser(HttpServletRequest request) {
         // 디버깅을 위한 로그 추가
         log.info("Received request to /me endpoint");
 
         // request(token)에서 username 추출
-        Optional<String> username = jwtService.extractUsernameFromToken(request);
-        if (username.isEmpty()) {
-            log.warn("Failed to extract username from token");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
-        }
-
-        log.info("Extracted username: {}", username.get());
+        String username = jwtService.extractUsernameFromToken(request)
+                .orElseThrow(() -> new AuthException(AuthErrorCode.INVALID_TOKEN));
+        log.info("Extracted username: {}", username);
 
         // username으로 찾은 user 반환
-        Optional<User> user = userService.findByUsername(username.get());
+        User user = userService.findByUsername(username)
+                .orElseThrow(() -> new BusinessException(UserErrorCode.NOT_FOUND));
 
-        return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok().body(ApiResponseDto.success(HttpStatus.OK.value(), user));
     }
 
     @GetMapping("/{username}")
@@ -79,7 +81,7 @@ public class UserController {
     public ResponseEntity<?> deleteUser(HttpServletRequest request) {
         Optional<String> username = jwtService.extractUsernameFromToken(request);
         if (username.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
+            throw new AuthException(AuthErrorCode.INVALID_TOKEN);
         }
 
         // username으로 찾은 user 반환
