@@ -58,25 +58,19 @@ spec:
                 secretKeyRef:
                   name: jwt-secret
                   key: JWT_SECRET_KEY
-          command:
-            - "scripts/local.sh"
           # command:
-          #   - "sh"
-          #   - "-c"
-          #   - "tail -f /dev/null"
+          #   - "scripts/local.sh"
+          command:
+            - "sh"
+            - "-c"
+            - "tail -f /dev/null"
           volumeMounts:
             - mountPath: /home/zerohertz/workspace
               name: backend-storage
-            - mountPath: /home/zerohertz/.gradle
-              name: gradle-cache
       volumes:
         - name: backend-storage
           hostPath:
             path: /home/zerohertz/Zerohertz/co-co-gong-server
-            type: DirectoryOrCreate
-        - name: gradle-cache
-          hostPath:
-            path: /home/zerohertz/.gradle
             type: DirectoryOrCreate
 ---
 apiVersion: v1
