@@ -1,14 +1,13 @@
-package com.server.global.error.exception;
+package com.server.global.error.handler;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.server.global.dto.ApiResponseDto;
+import com.server.global.error.exception.AuthException;
+import com.server.global.error.exception.BusinessException;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
