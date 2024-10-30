@@ -9,13 +9,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.server.domain.user.dto.GetUserOutDto;
 import com.server.domain.user.entity.User;
 import com.server.domain.user.service.UserService;
 import com.server.global.dto.ApiResponseDto;
 import com.server.global.error.code.AuthErrorCode;
-import com.server.global.error.code.UserErrorCode;
 import com.server.global.error.exception.AuthException;
-import com.server.global.error.exception.BusinessException;
 import com.server.global.jwt.JwtService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -48,17 +47,15 @@ public class UserController {
         log.info("Extracted username: {}", username);
 
         // username으로 찾은 user 반환
-        User user = userService.findByUsername(username)
-                .orElseThrow(() -> new BusinessException(UserErrorCode.NOT_FOUND));
+        User user = userService.getUserWithPersonalInfo(username);
 
         return ApiResponseDto.success(HttpStatus.OK.value(), user);
     }
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/{username}")
-    public ApiResponseDto<User> getUserByUsername(@PathVariable String username) {
-        User user = userService.findByUsername(username)
-                .orElseThrow(() -> new BusinessException(UserErrorCode.NOT_FOUND));
+    public ApiResponseDto<GetUserOutDto> getUserByUsername(@PathVariable String username) {
+        GetUserOutDto user = userService.getUserWithoutPersonalInfo(username);
         return ApiResponseDto.success(HttpStatus.OK.value(), user);
     }
 
@@ -71,8 +68,7 @@ public class UserController {
                 .orElseThrow(() -> new AuthException(AuthErrorCode.INVALID_ACCESS_TOKEN));
 
         // username으로 찾은 user 반환
-        User user = userService.findByUsername(username)
-                .orElseThrow(() -> new BusinessException(UserErrorCode.NOT_FOUND));
+        User user = userService.getUserWithPersonalInfo(username);
         User changedUser = userService.updateEmail(user, email);
 
         // TODO: HTTP Status Code?
@@ -88,8 +84,7 @@ public class UserController {
                 .orElseThrow(() -> new AuthException(AuthErrorCode.INVALID_ACCESS_TOKEN));
 
         // username으로 찾은 user 반환
-        User user = userService.findByUsername(username)
-                .orElseThrow(() -> new BusinessException(UserErrorCode.NOT_FOUND));
+        User user = userService.getUserWithPersonalInfo(username);
 
         userService.deleteUser(user);
         return ApiResponseDto.success(HttpStatus.OK.value(),

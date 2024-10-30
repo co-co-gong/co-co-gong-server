@@ -1,14 +1,16 @@
 package com.server.domain.user.service;
 
-import java.util.Optional;
-
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.server.domain.oauth.dto.GithubDto;
+import com.server.domain.user.dto.GetUserOutDto;
 import com.server.domain.user.entity.User;
+import com.server.domain.user.mapper.UserMapper;
 import com.server.domain.user.repository.UserRepository;
+import com.server.global.error.code.UserErrorCode;
+import com.server.global.error.exception.BusinessException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -17,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
     @Transactional
     public User loginOrRegister(GithubDto githubDto, String githubToken) {
@@ -44,8 +47,14 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public Optional<User> findByUsername(String username) {
-        return userRepository.findByUsername(username);
+    public User getUserWithPersonalInfo(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new BusinessException(UserErrorCode.NOT_FOUND));
+    }
+
+    public GetUserOutDto getUserWithoutPersonalInfo(String username) {
+        User user = getUserWithPersonalInfo(username);
+        return userMapper.toGetUserOutDto(user);
     }
 
     public User updateEmail(User user, String email) {

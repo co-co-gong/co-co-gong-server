@@ -64,7 +64,7 @@ public class User {
     private String refreshToken;
 
     @OneToMany(mappedBy = "requestUser", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<Friend> requestUserId;
+    private List<Friend> requestUser;
 
     @OneToMany(mappedBy = "receiptUser", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Friend> receiptUser;

@@ -24,9 +24,7 @@ import com.server.domain.user.service.UserService;
 import com.server.global.dto.ApiResponseDto;
 import com.server.global.dto.TokenDto;
 import com.server.global.error.code.AuthErrorCode;
-import com.server.global.error.code.UserErrorCode;
 import com.server.global.error.exception.AuthException;
-import com.server.global.error.exception.BusinessException;
 import com.server.global.jwt.JwtService;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -115,8 +113,7 @@ public class OAuthLoginController {
         }
 
         String username = jwtService.extractUsername(refreshToken).get();
-        User user = userService.findByUsername(username)
-                .orElseThrow(() -> new BusinessException(UserErrorCode.NOT_FOUND));
+        User user = userService.getUserWithPersonalInfo(username);
 
         if (!refreshToken.equals(user.getRefreshToken())) {
             throw new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN);
