@@ -7,6 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.server.domain.friend.entity.Friend;
 
 import jakarta.persistence.CascadeType;
@@ -64,9 +65,11 @@ public class User {
     private String refreshToken;
 
     @OneToMany(mappedBy = "requestUser", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Friend> requestUser;
 
     @OneToMany(mappedBy = "receiptUser", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Friend> receiptUser;
 
     @Builder

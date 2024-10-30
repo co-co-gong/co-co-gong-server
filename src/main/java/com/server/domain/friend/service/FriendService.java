@@ -24,6 +24,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class FriendService {
 
+    // TODO: user.getRequestUser() 또는 user.getReceiptUser()를 통해 refactoring
+
     private final UserRepository userRepository;
     private final FriendRepository friendRepository;
     private final FriendMapper friendMapper;
