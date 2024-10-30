@@ -90,6 +90,8 @@ public class UserController {
         // username으로 찾은 user 반환
         User user = userService.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(UserErrorCode.NOT_FOUND));
+
+        userService.deleteUser(user);
         return ApiResponseDto.success(HttpStatus.OK.value(),
                 String.format("Success delete user: %s", user.getUsername()));
     }
