@@ -35,8 +35,8 @@ public class FriendController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/request")
     @Operation(summary = "친구 신청 생성", description = "친구 신청할 사용자의 이름을 입력하여 친구 신청 생성")
-    public ApiResponseDto<String> createFriendRequest(@RequestParam String receiptUsername,
-            HttpServletRequest request) {
+    public ApiResponseDto<String> createFriendRequest(HttpServletRequest request,
+            @RequestParam String receiptUsername) {
         String requestUsername = jwtService.extractUsernameFromToken(request).get();
         friendService.createFriendRequest(requestUsername, receiptUsername);
         return ApiResponseDto.success(HttpStatus.CREATED.value(),
@@ -58,8 +58,8 @@ public class FriendController {
     @ResponseStatus(HttpStatus.OK)
     @DeleteMapping("/request")
     @Operation(summary = "친구 신청 취소", description = "친구 신청할 사용자의 이름을 입력하여 친구 신청 삭제")
-    public ApiResponseDto<String> deleteFriendRequest(@RequestParam String receiptUsername,
-            HttpServletRequest request) {
+    public ApiResponseDto<String> deleteFriendRequest(HttpServletRequest request,
+            @RequestParam String receiptUsername) {
         String requestUsername = jwtService.extractUsernameFromToken(request).get();
         friendService.deleteFriendRequest(requestUsername, receiptUsername);
         return ApiResponseDto.success(HttpStatus.OK.value(), String
@@ -69,9 +69,8 @@ public class FriendController {
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/receipt")
     @Operation(summary = "친구 내역 조회", description = "사용자 기준 신청 받은 내역")
-    public ApiResponseDto<List<GetFriendOutDto>> getFriendReceipt(
-            @RequestParam(required = false) FriendState state,
-            HttpServletRequest request) {
+    public ApiResponseDto<List<GetFriendOutDto>> getFriendReceipt(HttpServletRequest request,
+            @RequestParam(required = false) FriendState state) {
         String username = jwtService.extractUsernameFromToken(request).get();
         List<GetFriendOutDto> getUserOutDtos = friendService.getReceiptUser(username, state);
         return ApiResponseDto.success(HttpStatus.OK.value(), getUserOutDtos);
@@ -80,8 +79,8 @@ public class FriendController {
     @ResponseStatus(HttpStatus.CREATED)
     @PutMapping("/receipt")
     @Operation(summary = "친구 신청 승인", description = "친구 신청을 승인할 사용자의 이름을 입력하여 친구 신청 승인")
-    public ApiResponseDto<String> approveFriendRequest(@RequestParam String requestUsername,
-            HttpServletRequest request) {
+    public ApiResponseDto<String> approveFriendRequest(HttpServletRequest request,
+            @RequestParam String requestUsername) {
         String receiptUsername = jwtService.extractUsernameFromToken(request).get();
         friendService.acceptFriendRequest(requestUsername, receiptUsername);
         return ApiResponseDto.success(HttpStatus.CREATED.value(), String.format(
