@@ -1,95 +1,93 @@
- package com.server.domain.user.controller;
+package com.server.domain.user.controller;
 
- import java.util.Optional;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
- import com.server.global.jwt.JwtService;
- import jakarta.servlet.http.HttpServletRequest;
- import lombok.RequiredArgsConstructor;
- import lombok.extern.slf4j.Slf4j;
- import org.springframework.http.HttpStatus;
- import org.springframework.http.ResponseEntity;
- import org.springframework.web.bind.annotation.DeleteMapping;
- import org.springframework.web.bind.annotation.GetMapping;
- import org.springframework.web.bind.annotation.PathVariable;
- import org.springframework.web.bind.annotation.PutMapping;
- import org.springframework.web.bind.annotation.RequestMapping;
- import org.springframework.web.bind.annotation.RestController;
+import com.server.domain.user.dto.GetUserOutDto;
+import com.server.domain.user.entity.User;
+import com.server.domain.user.service.UserService;
+import com.server.global.dto.ApiResponseDto;
+import com.server.global.error.code.AuthErrorCode;
+import com.server.global.error.exception.AuthException;
+import com.server.global.jwt.JwtService;
 
- import com.server.domain.user.entity.User;
- import com.server.domain.user.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
- @RestController
- @RequiredArgsConstructor
- @Slf4j
- @RequestMapping("/api/users")
- public class UserController {
+@RestController
+@RequiredArgsConstructor
+@Slf4j
+@RequestMapping("/api/users")
+public class UserController {
 
-     private final JwtService jwtService;
-     private final UserService userService;
+    private final JwtService jwtService;
+    private final UserService userService;
 
-     //내 정보
-     @GetMapping("/me")
-     public ResponseEntity<?> getUser(HttpServletRequest request) {
-         // 디버깅을 위한 로그 추가
-         log.info("Received request to /me endpoint");
+    // TODO:: throw INVALID_ACCESS_TOKEN (related: FriendController)
+    // jwtService layer? or Controller layer?
+    // NOTE: jwtService layer에서 에러 핸들링을 수행하는 것이 좋을듯
 
-         // request(token)에서 username 추출
-         Optional<String> username = jwtService.extractUserNameFromToken(request);
-         if (username.isEmpty()) {
-             log.warn("Failed to extract username from token");
-             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
-         }
+    // 내 정보
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/me")
+    public ApiResponseDto<User> getUser(HttpServletRequest request) {
+        // 디버깅을 위한 로그 추가
+        log.info("Received request to /me endpoint");
 
-         log.info("Extracted username: {}", username.get());
+        // request(token)에서 username 추출
+        String username = jwtService.extractUsernameFromToken(request)
+                .orElseThrow(() -> new AuthException(AuthErrorCode.INVALID_ACCESS_TOKEN));
+        log.info("Extracted username: {}", username);
 
-         // username으로 찾은 user 반환
-         Optional<User> user = userService.findByUserName(username.get());
+        // username으로 찾은 user 반환
+        User user = userService.getUserWithPersonalInfo(username);
 
-         return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
-     }
+        return ApiResponseDto.success(HttpStatus.OK.value(), user);
+    }
 
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/{username}")
+    public ApiResponseDto<GetUserOutDto> getUserByUsername(@PathVariable String username) {
+        GetUserOutDto user = userService.getUserWithoutPersonalInfo(username);
+        return ApiResponseDto.success(HttpStatus.OK.value(), user);
+    }
 
-     @GetMapping("/{username}")
-     public ResponseEntity<?> getUserByUsername(@PathVariable String username)
-     {
-        Optional<User> user = userService.findByUserName(username);
-        return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
-     }
+    // 정보 수정
+    // 현재 바꿀 수 있는 거 email. 추후 닉네임 추가..?
+    @ResponseStatus(HttpStatus.OK)
+    @PutMapping
+    public ApiResponseDto<String> updateUser(HttpServletRequest request, String email) {
+        String username = jwtService.extractUsernameFromToken(request)
+                .orElseThrow(() -> new AuthException(AuthErrorCode.INVALID_ACCESS_TOKEN));
 
+        // username으로 찾은 user 반환
+        User user = userService.getUserWithPersonalInfo(username);
+        User changedUser = userService.updateEmail(user, email);
 
+        // TODO: HTTP Status Code?
+        // PUT -> 201?
+        return ApiResponseDto.success(HttpStatus.OK.value(), changedUser.getEmail());
+    }
 
-     //정보 수정
-     //현재 바꿀 수 있는 거 email. 추후 닉네임 추가..?
-     @PutMapping
-     public ResponseEntity<?> updateUser(HttpServletRequest request, String email) {
-         Optional<String> username = jwtService.extractUserNameFromToken(request);
-         if (username.isEmpty()) {
-             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
-         }
+    // 사용자 탈퇴
+    @ResponseStatus(HttpStatus.OK)
+    @DeleteMapping("/me")
+    public ApiResponseDto<String> deleteUser(HttpServletRequest request) {
+        String username = jwtService.extractUsernameFromToken(request)
+                .orElseThrow(() -> new AuthException(AuthErrorCode.INVALID_ACCESS_TOKEN));
 
-         // username으로 찾은 user 반환
-         Optional<User> user = userService.findByUserName(username.get());
+        // username으로 찾은 user 반환
+        User user = userService.getUserWithPersonalInfo(username);
 
-         return user.map(value ->{
-            User changedUser = userService.updateEmail(value, email);
-            return ResponseEntity.ok(changedUser.getEmail());
-        }).orElseGet(()-> ResponseEntity.notFound().build());
-
-     }
-
-     //사용자 탈퇴
-     @DeleteMapping("/me")
-     public ResponseEntity<?> deleteUser(HttpServletRequest request){
-         Optional<String> username = jwtService.extractUserNameFromToken(request);
-         if (username.isEmpty()) {
-             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
-         }
-
-         // username으로 찾은 user 반환
-         Optional<User> user = userService.findByUserName(username.get());
-         return user.map(value ->{
-             userService.deleteUser(value);
-             return ResponseEntity.ok("Success delete user "+value.getUsername());
-         }).orElseGet(()->ResponseEntity.notFound().build());
-     }
- }
+        userService.deleteUser(user);
+        return ApiResponseDto.success(HttpStatus.OK.value(),
+                String.format("Success delete user: %s", user.getUsername()));
+    }
+}

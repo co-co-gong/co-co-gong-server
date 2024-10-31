@@ -1,15 +1,13 @@
 package com.server.domain.friend.dto;
 
-import java.util.UUID;
-
 import com.server.domain.friend.enums.FriendState;
+import com.server.domain.user.dto.UserDto;
 
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
-public class FriendListDto {
-    private UUID id;
-    private UUID requestUserId;
-    private UUID receiptUserId;
+@Setter
+public class GetFriendOutDto extends UserDto {
     private FriendState state;
 }

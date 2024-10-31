@@ -58,12 +58,12 @@ spec:
                 secretKeyRef:
                   name: jwt-secret
                   key: JWT_SECRET_KEY
-          command:
-            - "scripts/local.sh"
           # command:
-          #   - "sh"
-          #   - "-c"
-          #   - "tail -f /dev/null"
+          #   - "scripts/local.sh"
+          command:
+            - "sh"
+            - "-c"
+            - "tail -f /dev/null"
           volumeMounts:
             - mountPath: /home/zerohertz/workspace
               name: backend-storage

@@ -1,16 +1,20 @@
 package com.server.global.jwt;
 
-import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Optional;
+
+import javax.crypto.SecretKey;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -24,7 +28,7 @@ public class JwtService {
     @Value("${jwt.refresh-token-expiration}")
     private long refreshTokenExpiration;
 
-    private static final String USERNAME_CLAIM = "userName";
+    private static final String USERNAME_CLAIM = "username";
     private static final String BEARER = "Bearer ";
 
     private SecretKey getSigningKey() {
@@ -32,27 +36,27 @@ public class JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String createAccessToken(String userName) {
-        return createToken(userName, accessTokenExpiration);
+    public String createAccessToken(String username) {
+        return createToken(username, accessTokenExpiration);
     }
 
-    public String createRefreshToken(String userName) {
-        return createToken(userName, refreshTokenExpiration);
+    public String createRefreshToken(String username) {
+        return createToken(username, refreshTokenExpiration);
     }
 
-    private String createToken(String userName, long expiration) {
+    private String createToken(String username, long expiration) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expiration);
 
         String token = Jwts.builder()
-                .setSubject(userName)
-                .claim(USERNAME_CLAIM, userName)  // 명시적으로 USERNAME_CLAIM 추가
+                .setSubject(username)
+                .claim(USERNAME_CLAIM, username) // 명시적으로 USERNAME_CLAIM 추가
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)
                 .compact();
 
-        log.info("Created token for user: {}, token: {}", userName, token);
+        log.info("Created token for user: {}, token: {}", username, token);
         return token;
     }
 
@@ -67,7 +71,7 @@ public class JwtService {
         }
     }
 
-    public Optional<String> extractUserName(String token) {
+    public Optional<String> extractUsername(String token) {
         try {
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
@@ -75,12 +79,12 @@ public class JwtService {
                     .parseClaimsJws(token)
                     .getBody();
 
-            String userName = claims.get(USERNAME_CLAIM, String.class);
-            if (userName == null) {
-                userName = claims.getSubject();  // USERNAME_CLAIM이 없으면 subject를 사용
+            String username = claims.get(USERNAME_CLAIM, String.class);
+            if (username == null) {
+                username = claims.getSubject(); // USERNAME_CLAIM이 없으면 subject를 사용
             }
-            log.info("Extracted username from token: {}", userName);
-            return Optional.ofNullable(userName);
+            log.info("Extracted username from token: {}", username);
+            return Optional.ofNullable(username);
         } catch (Exception e) {
             log.error("Failed to extract username from token: {}", e.getMessage());
             return Optional.empty();
@@ -100,7 +104,7 @@ public class JwtService {
                 });
     }
 
-    public Optional<String> extractUserNameFromToken(HttpServletRequest request) {
+    public Optional<String> extractUsernameFromToken(HttpServletRequest request) {
         Optional<String> accessToken = extractAccessToken(request);
         if (accessToken.isEmpty()) {
             log.warn("Access token is empty");
@@ -112,6 +116,6 @@ public class JwtService {
             return Optional.empty();
         }
 
-        return extractUserName(accessToken.get());
+        return extractUsername(accessToken.get());
     }
 }
