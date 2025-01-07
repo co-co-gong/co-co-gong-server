@@ -1,5 +1,6 @@
 ## Docs
 
+- [Branch 이름 설정 방법](docs/branch.md)
 - [Package 구조](docs/package-structure.md)
 - [Service layer 개발 방법](docs/service.md)
 - [Controller 개발 방법](docs/controller.md)
