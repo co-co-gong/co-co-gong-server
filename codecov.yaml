@@ -1,0 +1,32 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 0% # FIXME: Test 완성 후 변경
+    patch:
+      default:
+        target: 0% # FIXME: Test 완성 후 변경
+
+comment:
+  layout: "header, diff, flags, components, files, footer"
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: false
+  hide_project_coverage: false
+
+component_management:
+  default_rules:
+    statuses:
+      - type: project
+        target: 0% # FIXME: Test 완성 후 변경
+      - type: patch
+        target: 0% # FIXME: Test 완성 후 변경
+  individual_components:
+    - component_id: user
+      name: user
+      paths:
+        - src/test/java/com/server/domain/user/service/**
+# TODO: Coverage 측정 제외 대상에 대해 정의
+# ignore:
+#   -
