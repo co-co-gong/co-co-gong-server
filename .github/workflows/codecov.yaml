@@ -27,6 +27,8 @@ jobs:
       - name: Spring test
         run: |
           ./gradlew clean test
+        env:
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
 
       - name: Upload test results to Codecov
         uses: codecov/test-results-action@v1
