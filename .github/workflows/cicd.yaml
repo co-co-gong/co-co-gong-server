@@ -3,17 +3,29 @@ name: "CI/CD"
 on:
   push:
     branches:
-      - main
+      - "*"
+      # - main
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: test
-        run: |
-          echo "test"
+      - name: Login to GitHub
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GH_USERNAME }}
+          password: ${{ secrets.GH_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: |
+            ghcr.io/${{ secrets.GH_USERNAME }}/co-co-gong-server:latest,
+            ghcr.io/${{ secrets.GH_USERNAME }}/co-co-gong-server:${{ github.sha }}
 
 # TODO: ghcr.io & Argo CD (related: #22)
