@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: zerohertzkr/dev:latest
+          image: ghcr.io/co-co-gong-server:9ac1f5343ccaf00cbac50c9ea2c6bcac781fef6a
           env:
             - name: POSTGRES_HOST
               value: "postgres"
@@ -58,20 +58,6 @@ spec:
                 secretKeyRef:
                   name: jwt-secret
                   key: JWT_SECRET_KEY
-          # command:
-          #   - "scripts/local.sh"
-          command:
-            - "sh"
-            - "-c"
-            - "tail -f /dev/null"
-          volumeMounts:
-            - mountPath: /home/zerohertz/workspace
-              name: backend-storage
-      volumes:
-        - name: backend-storage
-          hostPath:
-            path: /home/zerohertz/Zerohertz/co-co-gong-server
-            type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: Service

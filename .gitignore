@@ -38,7 +38,7 @@ out/
 
 ### Credentials ###
 .env
-k8s/secrets.yaml
+secrets.yaml
 
 ### Etc ###
 .DS_Store
