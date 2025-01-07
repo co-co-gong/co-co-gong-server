@@ -6,9 +6,12 @@ on:
       - "*"
       - "*/*/*"
       # - main
+    paths-ignore:
+      - "k8s/deploy/backend.yaml"
 
 jobs:
-  build:
+  ci:
+    name: Docker Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -29,4 +32,25 @@ jobs:
             ghcr.io/${{ secrets.GH_USERNAME }}/co-co-gong-server:latest,
             ghcr.io/${{ secrets.GH_USERNAME }}/co-co-gong-server:${{ github.sha }}
 
-# TODO: ghcr.io & Argo CD (related: #22)
+  cd:
+    name: Argo CD
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Change manifest
+        run: |
+          sed -i 's|ghcr.io/co-co-gong-server:[^ ]*|ghcr.io/co-co-gong-server:${{ github.sha }}|' k8s/deploy/backend.yaml
+
+      - name: git push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config credential.helper store
+          git add k8s/deploy/backend.yaml
+          git commit -m ":tada: deploy: co-co-gong-server [${{ github.sha }}]"
+          git push origin ${{ github.ref_name }}
