@@ -19,3 +19,4 @@
 - [Test 코드 개발 방법](docs/test.md)
 - [Docker Compose 사용 방법](docs/docker-compose.md)
 - [Kubernetes 사용 방법](docs/kubernetes.md)
+- [CI/CD](docs/cicd.md)
