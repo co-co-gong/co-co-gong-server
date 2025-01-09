@@ -46,3 +46,5 @@ Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
 ![jacoco](./images/jacoco.png)
 
 ## [Codecov](https://app.codecov.io/gh/co-co-gong/co-co-gong-server)
+
+![codecov](./images/codecov.png)
