@@ -50,15 +50,14 @@ public class OAuthLoginController {
     @ResponseStatus(HttpStatus.FOUND)
     @GetMapping("/login")
     public ApiResponseDto<String> login(HttpServletResponse response) {
-        String githubAuthUrl = String.format(
-                "https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s/login/oauth2/code/github",
-                clientId, redirectUri);
+        // NOTE: redirect_uri는 선택적으로 사용할 수 있고, 미지정 시 GitHub OAuth App에서 설정한 값으로 이동한다.
+        String githubAuthUrl = String.format("https://github.com/login/oauth/authorize?client_id=%s", clientId);
         response.setHeader(HttpHeaders.LOCATION, githubAuthUrl);
         return ApiResponseDto.success(HttpStatus.FOUND.value(), "Login Success");
     }
 
-    @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/login/oauth2/code/github")
+    @ResponseStatus(HttpStatus.FOUND)
+    @GetMapping("/login/oauth2/github")
     public ApiResponseDto<TokenDto> githubLogin(HttpServletResponse response, @RequestParam String code) {
         try {
             RestTemplate restTemplate = new RestTemplate();
@@ -95,7 +94,10 @@ public class OAuthLoginController {
             TokenDto tokenDto = new TokenDto(accessToken, refreshToken);
 
             response.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
-            return ApiResponseDto.success(HttpStatus.OK.value(), tokenDto);
+            response.setHeader(HttpHeaders.LOCATION,
+                    String.format("%s/auth/github/callback?accessToken=%s&refreshToken=%s",
+                            redirectUri, accessToken, refreshToken));
+            return ApiResponseDto.success(HttpStatus.FOUND.value(), tokenDto);
         } catch (Exception e) {
             log.error("Error during GitHub OAuth process", e);
             throw new AuthException(AuthErrorCode.OAUTH_PROCESS_ERROR);
