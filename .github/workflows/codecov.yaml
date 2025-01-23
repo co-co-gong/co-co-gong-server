@@ -6,12 +6,12 @@ on:
       - "*"
       - "*/*/*"
     paths-ignore:
-      - "k8s/deploy/backend.yaml"
+      - "k8s/prod/backend.yaml"
   pull_request:
     branches:
       - main
     paths-ignore:
-      - "k8s/deploy/backend.yaml"
+      - "k8s/prod/backend.yaml"
 
 permissions:
   contents: write
