@@ -1,5 +1,6 @@
 package com.server.domain.user.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,23 +38,18 @@ public class UserController {
     // 내 정보
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/me")
-    public ApiResponseDto<User> getUser(HttpServletRequest request) {
+    @Operation(summary = "자기 정보 얻기", description = "로그인한 유저의 정보 반환")
+    public ApiResponseDto<GetUserOutDto> getUser(HttpServletRequest request) {
         // 디버깅을 위한 로그 추가
         log.info("Received request to /me endpoint");
 
-        // request(token)에서 username 추출
-        String username = jwtService.extractUsernameFromToken(request)
-                .orElseThrow(() -> new AuthException(AuthErrorCode.INVALID_ACCESS_TOKEN));
-        log.info("Extracted username: {}", username);
-
-        // username으로 찾은 user 반환
-        User user = userService.getUserWithPersonalInfo(username);
-
+        GetUserOutDto user = userService.getUser(request);
         return ApiResponseDto.success(HttpStatus.OK.value(), user);
     }
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/{username}")
+    @Operation(summary = "특정 유저의 정보 얻기", description = "username 입력 시 해당하는 유저의 정보 반환")
     public ApiResponseDto<GetUserOutDto> getUserByUsername(@PathVariable String username) {
         GetUserOutDto user = userService.getUserWithoutPersonalInfo(username);
         return ApiResponseDto.success(HttpStatus.OK.value(), user);
@@ -63,13 +59,9 @@ public class UserController {
     // 현재 바꿀 수 있는 거 email. 추후 닉네임 추가..?
     @ResponseStatus(HttpStatus.OK)
     @PutMapping
+    @Operation(summary = "유저 email 수정", description = "email 수정")
     public ApiResponseDto<String> updateUser(HttpServletRequest request, String email) {
-        String username = jwtService.extractUsernameFromToken(request)
-                .orElseThrow(() -> new AuthException(AuthErrorCode.INVALID_ACCESS_TOKEN));
-
-        // username으로 찾은 user 반환
-        User user = userService.getUserWithPersonalInfo(username);
-        User changedUser = userService.updateEmail(user, email);
+        User changedUser = userService.updateEmail(request, email);
 
         // TODO: HTTP Status Code?
         // PUT -> 201?
@@ -79,15 +71,10 @@ public class UserController {
     // 사용자 탈퇴
     @ResponseStatus(HttpStatus.OK)
     @DeleteMapping("/me")
+    @Operation(summary = "유저 삭제(탈퇴)", description = "로그인한 유저 삭제")
     public ApiResponseDto<String> deleteUser(HttpServletRequest request) {
-        String username = jwtService.extractUsernameFromToken(request)
-                .orElseThrow(() -> new AuthException(AuthErrorCode.INVALID_ACCESS_TOKEN));
-
-        // username으로 찾은 user 반환
-        User user = userService.getUserWithPersonalInfo(username);
-
-        userService.deleteUser(user);
+        String name = userService.deleteUser(request);
         return ApiResponseDto.success(HttpStatus.OK.value(),
-                String.format("Success delete user: %s", user.getUsername()));
+                String.format("Success delete user: %s", name));
     }
 }
