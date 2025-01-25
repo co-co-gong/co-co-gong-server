@@ -1,5 +1,7 @@
 package com.server.domain.oauth.controller;
 
+import com.server.domain.oauth.service.OAuthLoginService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -36,8 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class OAuthLoginController {
 
-    private final UserService userService;
-    private final JwtService jwtService;
+    private final OAuthLoginService oAuthLoginService;
 
     @Value("${spring.security.oauth2.client.registration.github.redirect-uri}")
     private String redirectUri;
@@ -49,6 +50,7 @@ public class OAuthLoginController {
     // 새로 추가된 로그인 시작점
     @ResponseStatus(HttpStatus.FOUND)
     @GetMapping("/login")
+    @Operation(summary = "로그인", description = "github oauth url로 연결")
     public ApiResponseDto<String> login(HttpServletResponse response) {
         // NOTE: redirect_uri는 선택적으로 사용할 수 있고, 미지정 시 GitHub OAuth App에서 설정한 값으로 이동한다.
         String githubAuthUrl = String.format("https://github.com/login/oauth/authorize?client_id=%s", clientId);
@@ -58,89 +60,31 @@ public class OAuthLoginController {
 
     @ResponseStatus(HttpStatus.FOUND)
     @GetMapping("/login/oauth2/github")
+    @Operation(summary = "github oauth 로그인", description = "/login 호출 시 자동 호출")
     public ApiResponseDto<TokenDto> githubLogin(HttpServletResponse response, @RequestParam String code) {
-        try {
-            RestTemplate restTemplate = new RestTemplate();
+        //github 로그인 후 토큰 발급
+        TokenDto tokenDto = oAuthLoginService.processGithubLogin(code);
 
-            // GitHub 액세스 토큰 요청
-            ResponseEntity<OAuthInfo> githubAccessTokenResponse = restTemplate.exchange(
-                    "https://github.com/login/oauth/access_token",
-                    HttpMethod.POST,
-                    getAccessToken(code),
-                    OAuthInfo.class);
-            String githubAccessToken = githubAccessTokenResponse.getBody().getAccessToken();
+        response.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + tokenDto.getAccessToken());
+        response.setHeader(HttpHeaders.LOCATION,
+                String.format("%s/auth/github/callback?accessToken=%s&refreshToken=%s",
+                        redirectUri, tokenDto.getAccessToken(), tokenDto.getRefreshToken()));
+        return ApiResponseDto.success(HttpStatus.FOUND.value(), tokenDto);
 
-            // GitHub 사용자 정보 요청
-            ResponseEntity<GithubDto> userInfoResponse = restTemplate.exchange(
-                    "https://api.github.com/user",
-                    HttpMethod.GET,
-                    getUserInfo(githubAccessToken),
-                    GithubDto.class);
 
-            GithubDto githubDto = userInfoResponse.getBody();
-            log.info("Received user info. Username: " + githubDto.getUsername());
-
-            // 사용자 등록 또는 로그인 처리
-            User user = userService.loginOrRegister(githubDto, githubAccessToken);
-
-            // JWT 토큰 생성
-            String accessToken = jwtService.createAccessToken(user.getUsername());
-            String refreshToken = jwtService.createRefreshToken(user.getUsername());
-
-            // Refresh 토큰 저장
-            userService.saveRefreshToken(user.getUsername(), refreshToken);
-
-            // 응답 생성
-            TokenDto tokenDto = new TokenDto(accessToken, refreshToken);
-
-            response.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
-            response.setHeader(HttpHeaders.LOCATION,
-                    String.format("%s/auth/github/callback?accessToken=%s&refreshToken=%s",
-                            redirectUri, accessToken, refreshToken));
-            return ApiResponseDto.success(HttpStatus.FOUND.value(), tokenDto);
-        } catch (Exception e) {
-            log.error("Error during GitHub OAuth process", e);
-            throw new AuthException(AuthErrorCode.OAUTH_PROCESS_ERROR);
-        }
     }
 
     @ResponseStatus(HttpStatus.OK)
     @PostMapping("/refresh")
+    @Operation(summary = "refresh 토큰 발급", description = "Token Dto을 입력받아 refresh token 제공")
     public ApiResponseDto<TokenDto> refreshToken(@RequestBody TokenDto tokenDto) {
         String refreshToken = tokenDto.getRefreshToken();
         log.info(refreshToken);
 
-        if (!jwtService.validateToken(refreshToken)) {
-            throw new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN);
-        }
+        TokenDto newTokenDto = oAuthLoginService.refresh(refreshToken);
 
-        String username = jwtService.extractUsername(refreshToken).get();
-        User user = userService.getUserWithPersonalInfo(username);
-
-        if (!refreshToken.equals(user.getRefreshToken())) {
-            throw new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN);
-        }
-
-        String newAccessToken = jwtService.createAccessToken(username);
-        TokenDto newTokenDto = new TokenDto(newAccessToken, refreshToken);
         return ApiResponseDto.success(HttpStatus.OK.value(), newTokenDto);
     }
 
-    private HttpEntity<MultiValueMap<String, String>> getAccessToken(String code) {
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("client_id", clientId);
-        params.add("client_secret", clientSecret);
-        params.add("code", code);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        return new HttpEntity<>(params, headers);
-    }
-
-    private HttpEntity<MultiValueMap<String, String>> getUserInfo(String accessToken) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(accessToken);
-        return new HttpEntity<>(headers);
-    }
 }
