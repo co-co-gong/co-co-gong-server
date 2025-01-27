@@ -192,7 +192,6 @@ class UserServiceTest {
 //    @Test
 //    void updateEmail_updatesEmailAndSavesUser() {
 //        /* given */
-//        // given
 //        User user = new User("user1", "oldemail@example.com", "thumbnail.png", "github", "some_token");
 //        given(userRepository.save(user)).willReturn(user);
 //
