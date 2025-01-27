@@ -76,7 +76,7 @@ public class UserService {
 
     }
 
-    public String  deleteUser(HttpServletRequest request) {
+    public String deleteUser(HttpServletRequest request) {
         String username = jwtService.extractUsernameFromToken(request)
                 .orElseThrow(() -> new AuthException(AuthErrorCode.INVALID_ACCESS_TOKEN));
 
