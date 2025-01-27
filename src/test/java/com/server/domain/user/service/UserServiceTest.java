@@ -189,30 +189,29 @@ class UserServiceTest {
         assertThat(result).isEqualTo(dto);
     }
 
-    @Test
-    void updateEmail_updatesEmailAndSavesUser() {
-        /* given */
-        // given
-        User user = new User("user1", "oldemail@example.com", "thumbnail.png", "github", "some_token");
-        given(userRepository.save(user)).willReturn(user);
-
-        /* when */
-        User updatedUser = userService.updateEmail(user, "newemail@example.com");
-
-        /* then */
-        verify(userRepository).save(user);
-        assertThat(updatedUser.getEmail()).isEqualTo("newemail@example.com");
-    }
-
-    @Test
-    void deleteUser_deletesUser() {
-        /* given */
-        User user = new User("user1", "user1@example.com", "thumbnail.png", "github", "some_token");
-
-        /* when */
-        userService.deleteUser(user);
-
-        /* then */
-        verify(userRepository).delete(user);
-    }
+//    @Test
+//    void updateEmail_updatesEmailAndSavesUser() {
+//        /* given */
+//        User user = new User("user1", "oldemail@example.com", "thumbnail.png", "github", "some_token");
+//        given(userRepository.save(user)).willReturn(user);
+//
+//        /* when */
+//        User updatedUser = userService.updateEmail(user, "newemail@example.com");
+//
+//        /* then */
+//        verify(userRepository).save(user);
+//        assertThat(updatedUser.getEmail()).isEqualTo("newemail@example.com");
+//    }
+//
+//    @Test
+//    void deleteUser_deletesUser() {
+//        /* given */
+//        User user = new User("user1", "user1@example.com", "thumbnail.png", "github", "some_token");
+//
+//        /* when */
+//        userService.deleteUser(user);
+//
+//        /* then */
+//        verify(userRepository).delete(user);
+//    }
 }

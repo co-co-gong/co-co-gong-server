@@ -1,5 +1,10 @@
 package com.server.domain.user.service;
 
+import com.server.global.error.code.AuthErrorCode;
+import com.server.global.error.exception.AuthException;
+import com.server.global.jwt.JwtService;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,9 +21,11 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
     private final UserMapper userMapper;
 
     @Transactional
@@ -57,13 +64,38 @@ public class UserService {
         return userMapper.toGetUserOutDto(user);
     }
 
-    public User updateEmail(User user, String email) {
+    public User updateEmail(HttpServletRequest request, String email) {
+        String username = jwtService.extractUsernameFromToken(request)
+                .orElseThrow(() -> new AuthException(AuthErrorCode.INVALID_ACCESS_TOKEN));
+
+        // username으로 찾은 user 반환
+        User user = getUserWithPersonalInfo(username);
+
         user.updateEmail(email);
         return userRepository.save(user);
 
     }
 
-    public void deleteUser(User user) {
+    public String deleteUser(HttpServletRequest request) {
+        String username = jwtService.extractUsernameFromToken(request)
+                .orElseThrow(() -> new AuthException(AuthErrorCode.INVALID_ACCESS_TOKEN));
+
+        // username으로 찾은 user 반환
+        User user = getUserWithPersonalInfo(username);
+
         userRepository.delete(user);
+
+        return user.getUsername();
+    }
+
+    public GetUserOutDto getUser(HttpServletRequest request) {
+        // request(token)에서 username 추출
+        String username = jwtService.extractUsernameFromToken(request)
+                .orElseThrow(() -> new AuthException(AuthErrorCode.INVALID_ACCESS_TOKEN));
+        log.info("Extracted username: {}", username);
+
+        // username으로 찾은 user -> userDto 반환
+        return userMapper.toGetUserOutDto(getUserWithPersonalInfo(username));
+
     }
 }
