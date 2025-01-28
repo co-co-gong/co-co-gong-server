@@ -17,7 +17,9 @@ import com.server.domain.user.repository.UserRepository;
 import com.server.global.error.code.FriendErrorCode;
 import com.server.global.error.code.UserErrorCode;
 import com.server.global.error.exception.BusinessException;
+import com.server.global.jwt.JwtService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -29,9 +31,11 @@ public class FriendService {
     private final UserRepository userRepository;
     private final FriendRepository friendRepository;
     private final FriendMapper friendMapper;
+    private final JwtService jwtService;
 
-    public List<GetFriendOutDto> getRequestUser(String username, FriendState state) {
+    public List<GetFriendOutDto> getRequestUser(HttpServletRequest request, FriendState state) {
         List<Friend> friends;
+        String username = jwtService.extractUsernameFromToken(request).get();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(UserErrorCode.NOT_FOUND));
         if (state == null) {
@@ -47,7 +51,8 @@ public class FriendService {
         return getFriendOutDtos;
     }
 
-    public List<GetFriendOutDto> getReceiptUser(String username, FriendState state) {
+    public List<GetFriendOutDto> getReceiptUser(HttpServletRequest request, FriendState state) {
+        String username = jwtService.extractUsernameFromToken(request).get();
         List<Friend> friends;
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(UserErrorCode.NOT_FOUND));
@@ -87,7 +92,8 @@ public class FriendService {
     }
 
     @Transactional
-    public Friend createFriendRequest(String requestUsername, String receiptUsername) {
+    public String createFriendRequest(HttpServletRequest request, String receiptUsername) {
+        String requestUsername = jwtService.extractUsernameFromToken(request).get();
         User requestUser = userRepository.findByUsername(requestUsername)
                 .orElseThrow(() -> new BusinessException(UserErrorCode.NOT_FOUND));
         User receiptUser = userRepository.findByUsername(receiptUsername)
@@ -98,11 +104,13 @@ public class FriendService {
                 .receiptUser(receiptUser)
                 .state(FriendState.SENDING)
                 .build();
-        return friendRepository.save(friend);
+        friendRepository.save(friend);
+        return requestUsername;
     }
 
     @Transactional
-    public void deleteFriendRequest(String requestUsername, String receiptUsername) {
+    public String deleteFriendRequest(HttpServletRequest request, String receiptUsername) {
+        String requestUsername = jwtService.extractUsernameFromToken(request).get();
         User requestUser = userRepository.findByUsername(requestUsername)
                 .orElseThrow(() -> new BusinessException(UserErrorCode.NOT_FOUND));
         User receiptUser = userRepository.findByUsername(receiptUsername)
@@ -116,10 +124,12 @@ public class FriendService {
             throw new BusinessException(FriendErrorCode.REQUEST_ALREADY_REMOVED);
         }
         friend.setState(FriendState.REMOVED);
+        return requestUsername;
     }
 
     @Transactional
-    public void acceptFriendRequest(String requestUsername, String receiptUsername) {
+    public String acceptFriendRequest(String requestUsername, HttpServletRequest request) {
+        String receiptUsername = jwtService.extractUsernameFromToken(request).get();
         User requestUser = userRepository.findByUsername(requestUsername)
                 .orElseThrow(() -> new BusinessException(UserErrorCode.NOT_FOUND));
         User receiptUser = userRepository.findByUsername(receiptUsername)
@@ -144,5 +154,6 @@ public class FriendService {
                     .build();
             friendRepository.save(friendApproved);
         }
+        return receiptUsername;
     }
 }
