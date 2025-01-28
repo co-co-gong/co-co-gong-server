@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: ghcr.io/co-co-gong/co-co-gong-server:e2fb7fe6729a417ea7ac82cc1c1cf872ca2bd177
+          image: ghcr.io/co-co-gong/co-co-gong-server:d58c3bf803c3460543a54c52cf345eaf0ca10c23
           env:
             - name: POSTGRES_HOST
               value: "postgres"
