@@ -1,34 +1,20 @@
 package com.server.domain.oauth.controller;
 
-import com.server.domain.oauth.service.OAuthLoginService;
-import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 
-import com.server.domain.oauth.dto.GithubDto;
-import com.server.domain.oauth.dto.OAuthInfo;
-import com.server.domain.user.entity.User;
-import com.server.domain.user.service.UserService;
+import com.server.domain.oauth.service.OAuthLoginService;
 import com.server.global.dto.ApiResponseDto;
 import com.server.global.dto.TokenDto;
-import com.server.global.error.code.AuthErrorCode;
-import com.server.global.error.exception.AuthException;
-import com.server.global.jwt.JwtService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,7 +39,8 @@ public class OAuthLoginController {
     @Operation(summary = "로그인", description = "github oauth url로 연결")
     public ApiResponseDto<String> login(HttpServletResponse response) {
         // NOTE: redirect_uri는 선택적으로 사용할 수 있고, 미지정 시 GitHub OAuth App에서 설정한 값으로 이동한다.
-        String githubAuthUrl = String.format("https://github.com/login/oauth/authorize?client_id=%s", clientId);
+        String githubAuthUrl = String.format("https://github.com/login/oauth/authorize?client_id=%s&scope=repo,user",
+                clientId);
         response.setHeader(HttpHeaders.LOCATION, githubAuthUrl);
         return ApiResponseDto.success(HttpStatus.FOUND.value(), "Login Success");
     }
@@ -62,7 +49,7 @@ public class OAuthLoginController {
     @GetMapping("/login/oauth2/github")
     @Operation(summary = "github oauth 로그인", description = "/login 호출 시 자동 호출")
     public ApiResponseDto<TokenDto> githubLogin(HttpServletResponse response, @RequestParam String code) {
-        //github 로그인 후 토큰 발급
+        // github 로그인 후 토큰 발급
         TokenDto tokenDto = oAuthLoginService.processGithubLogin(code);
 
         response.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + tokenDto.getAccessToken());
@@ -70,7 +57,6 @@ public class OAuthLoginController {
                 String.format("%s/auth/github/callback?accessToken=%s&refreshToken=%s",
                         redirectUri, tokenDto.getAccessToken(), tokenDto.getRefreshToken()));
         return ApiResponseDto.success(HttpStatus.FOUND.value(), tokenDto);
-
 
     }
 
@@ -85,6 +71,5 @@ public class OAuthLoginController {
 
         return ApiResponseDto.success(HttpStatus.OK.value(), newTokenDto);
     }
-
 
 }
