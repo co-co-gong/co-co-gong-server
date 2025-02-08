@@ -4,8 +4,11 @@ import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.server.domain.pull.entity.PullRequest;
 import com.server.domain.pull.enums.PullRequestState;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 @Getter
@@ -45,4 +48,24 @@ public class PullRequestDto {
 
     @JsonProperty("merged_at")
     private LocalDateTime mergedAt;
+
+    public static PullRequest toEntity(PullRequestDto pullRequestDto){
+
+        return PullRequest.builder()
+                .prNumber(pullRequestDto.getPrId())
+                .url(pullRequestDto.getUrl())
+                .title(pullRequestDto.getTitle())
+                .ownerId(pullRequestDto.getOwnerId())
+                .branchName(pullRequestDto.getBranchName())
+                .status(pullRequestDto.getStatus())
+                .createdAt(pullRequestDto.getCreatedAt())
+                .closedAt(pullRequestDto.getClosedAt())
+                .mergedAt(pullRequestDto.getMergedAt())
+                .build();
+    }
+
+
+
+
 }
+

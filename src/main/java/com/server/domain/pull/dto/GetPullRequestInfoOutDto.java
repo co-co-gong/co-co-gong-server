@@ -2,6 +2,9 @@ package com.server.domain.pull.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import com.server.domain.pull.entity.PullRequest;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -33,5 +36,7 @@ public class GetPullRequestInfoOutDto extends PullRequestDto {
 
     @JsonProperty("changed_files")
     int changedFiles;
+
+
 
 }
