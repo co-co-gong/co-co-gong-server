@@ -42,7 +42,7 @@ jobs:
 
       - name: Change manifest
         run: |
-          sed -i 's|ghcr.io/co-co-gong/co-co-gong-server:[^ ]*|ghcr.io/co-co-gong/co-co-gong-server:${{ github.sha }}|' k8s/prod/backend.yaml
+          sed -i 's|ghcr.io/co-co-gong/co-co-gong-server:[^ ]*|ghcr.io/co-co-gong/co-co-gong-server:${{ github.sha }}|' k8s/prod/server.yaml
 
       - name: git push
         run: |

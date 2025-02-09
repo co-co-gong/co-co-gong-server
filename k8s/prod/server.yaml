@@ -1,21 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend
+  name: server
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: backend
+      app: server
   template:
     metadata:
       labels:
-        app: backend
+        app: server
     spec:
       containers:
-        - name: backend
+        - name: server
           image: ghcr.io/co-co-gong/co-co-gong-server:29071fd0ff690a5bf6597868cf71769cf6a08494
           env:
+            - name: SERVER_PORT
+              value: "8080"
             - name: POSTGRES_HOST
               value: "postgres"
             - name: POSTGRES_PORT
@@ -62,25 +64,25 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend
+  name: server
 spec:
   ports:
     - port: 8080
   selector:
-    app: backend
+    app: server
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: co-co-gong
+  name: co-co-gong-server
 spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`co-co-gong.zerohertz.xyz`)
+    - match: Host(`co-co-gong-prod.zerohertz.xyz`)
       kind: Rule
       services:
-        - name: backend
+        - name: server
           port: 8080
   tls:
     certResolver: zerohertz-resolver
