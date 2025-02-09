@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths-ignore:
-      - "k8s/prod/backend.yaml"
+      - "k8s/prod/server.yaml"
 
 jobs:
   ci:
@@ -49,6 +49,6 @@ jobs:
           git config user.name "Zerohertz"
           git config user.email "ohg3417@gmail.com"
           git config credential.helper store
-          git add k8s/prod/backend.yaml
+          git add k8s/prod/server.yaml
           git commit -m ":tada: deploy: co-co-gong-server [${{ github.sha }}]"
           git push origin ${{ github.ref_name }}
