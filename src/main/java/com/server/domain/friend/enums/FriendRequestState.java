@@ -1,7 +1,7 @@
 package com.server.domain.friend.enums;
 
-public enum FriendState {
+public enum FriendRequestState {
     SENDING,
     REMOVED,
-    ACCEPTED
+    REJECTED
 }

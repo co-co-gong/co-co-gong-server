@@ -8,7 +8,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.server.domain.friend.entity.Friend;
+import com.server.domain.friend.entity.FriendList;
+import com.server.domain.friend.entity.FriendRequest;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -66,11 +67,19 @@ public class User {
 
     @OneToMany(mappedBy = "requestUser", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<Friend> requestUser;
+    private List<FriendRequest> friendRequestRequestUser;
 
     @OneToMany(mappedBy = "receiptUser", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<Friend> receiptUser;
+    private List<FriendRequest> friendRequestReceiptUser;
+
+    @OneToMany(mappedBy = "requestUser", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<FriendList> friendListRequestUser;
+
+    @OneToMany(mappedBy = "receiptUser", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<FriendList> friendListReceiptUser;
 
     @Builder
     public User(String username, String thumbnail, String email, String oauth, String githubToken) {
