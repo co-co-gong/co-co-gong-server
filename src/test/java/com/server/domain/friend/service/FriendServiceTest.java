@@ -17,11 +17,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 
-import com.server.domain.friend.dto.GetFriendOutDto;
-import com.server.domain.friend.entity.Friend;
-import com.server.domain.friend.enums.FriendState;
+import com.server.domain.friend.dto.GetFriendRequestOutDto;
+import com.server.domain.friend.entity.FriendList;
+import com.server.domain.friend.entity.FriendRequest;
+import com.server.domain.friend.enums.FriendListState;
+import com.server.domain.friend.enums.FriendRequestState;
 import com.server.domain.friend.mapper.FriendMapper;
-import com.server.domain.friend.repository.FriendRepository;
+import com.server.domain.friend.repository.FriendListRepository;
+import com.server.domain.friend.repository.FriendRequestRepository;
 import com.server.domain.user.entity.User;
 import com.server.domain.user.repository.UserRepository;
 import com.server.global.jwt.JwtService;
@@ -42,7 +45,10 @@ class FriendServiceTest {
     private UserRepository userRepository;
 
     @Mock
-    private FriendRepository friendRepository;
+    private FriendRequestRepository friendRequestRepository;
+
+    @Mock
+    private FriendListRepository friendListRepository;
 
     @Mock
     private FriendMapper friendMapper;
@@ -71,17 +77,19 @@ class FriendServiceTest {
         given(jwtService.extractUsernameFromToken(request)).willReturn(Optional.of(requestUsername));
         given(userRepository.findByUsername(requestUsername)).willReturn(Optional.of(requestUser));
         given(userRepository.findByUsername(receiptUsername)).willReturn(Optional.of(receiptUser));
+        given(friendRequestRepository.findByRequestUserAndReceiptUser(requestUser, receiptUser))
+                .willReturn(Optional.empty());
 
         /* when */
-        ArgumentCaptor<Friend> friendCaptor = ArgumentCaptor.forClass(Friend.class);
+        ArgumentCaptor<FriendRequest> friendRequestCaptor = ArgumentCaptor.forClass(FriendRequest.class);
         friendService.createFriendRequest(request, receiptUsername);
 
         /* then */
-        then(friendRepository).should(times(1)).save(friendCaptor.capture());
-        Friend savedFriend = friendCaptor.getValue();
-        assertThat(savedFriend.getRequestUser()).isEqualTo(requestUser);
-        assertThat(savedFriend.getReceiptUser()).isEqualTo(receiptUser);
-        assertThat(savedFriend.getState()).isEqualTo(FriendState.SENDING);
+        then(friendRequestRepository).should(times(1)).save(friendRequestCaptor.capture());
+        FriendRequest friendRequest = friendRequestCaptor.getValue();
+        assertThat(friendRequest.getRequestUser()).isEqualTo(requestUser);
+        assertThat(friendRequest.getReceiptUser()).isEqualTo(receiptUser);
+        assertThat(friendRequest.getState()).isEqualTo(FriendRequestState.SENDING);
     }
 
     @Test
@@ -90,6 +98,7 @@ class FriendServiceTest {
         /* given */
         String requestUsername = "request user";
         String receiptUsername = "receipt user";
+        Long friendRequestId = 981023L;
         User requestUser = User.builder()
                 .username(requestUsername)
                 .email("user1@example.com")
@@ -104,26 +113,26 @@ class FriendServiceTest {
                 .oauth("github")
                 .githubToken("gho4321")
                 .build();
-        Friend friendRequested = Friend.builder().requestUser(requestUser).receiptUser(receiptUser)
-                .state(FriendState.SENDING).build();
+        FriendRequest friendRequested = FriendRequest.builder().id(friendRequestId)
+                .requestUser(requestUser).receiptUser(receiptUser)
+                .state(FriendRequestState.SENDING).build();
         MockHttpServletRequest request = new MockHttpServletRequest();
         given(jwtService.extractUsernameFromToken(request)).willReturn(Optional.of(receiptUsername));
         given(userRepository.findByUsername(requestUsername)).willReturn(Optional.of(requestUser));
         given(userRepository.findByUsername(receiptUsername)).willReturn(Optional.of(receiptUser));
-        given(friendRepository.findByRequestUserAndReceiptUser(requestUser, receiptUser))
+        given(friendRequestRepository.findByRequestUserAndReceiptUser(
+                requestUser, receiptUser))
                 .willReturn(Optional.of(friendRequested));
-        given(friendRepository.findByRequestUserAndReceiptUser(receiptUser, requestUser))
-                .willReturn(Optional.empty());
 
         /* when */
-        ArgumentCaptor<Friend> friendCaptor = ArgumentCaptor.forClass(Friend.class);
+        ArgumentCaptor<FriendList> friendListCaptor = ArgumentCaptor.forClass(FriendList.class);
         friendService.acceptFriendRequest(requestUsername, request);
 
         /* then */
-        assertThat(friendRequested.getState()).isEqualTo(FriendState.ACCEPTED);
-        then(friendRepository).should(times(1)).save(friendCaptor.capture());
-        List<Friend> capturedFriends = friendCaptor.getAllValues();
-        assertThat(capturedFriends.get(0).getState()).isEqualTo(FriendState.ACCEPTED);
+        then(friendRequestRepository).should(times(1)).deleteById(friendRequestId);
+        then(friendListRepository).should(times(1)).save(friendListCaptor.capture());
+        List<FriendList> capturedFriendList = friendListCaptor.getAllValues();
+        assertThat(capturedFriendList.get(0).getState()).isEqualTo(FriendListState.NEUTRAL);
     }
 
     @Test
@@ -146,20 +155,21 @@ class FriendServiceTest {
                 .oauth("github")
                 .githubToken("gho4321")
                 .build();
-        Friend friendRequested = Friend.builder().requestUser(requestUser).receiptUser(receiptUser)
-                .state(FriendState.SENDING).build();
+        FriendRequest friendRequested = FriendRequest.builder().requestUser(requestUser).receiptUser(receiptUser)
+                .state(FriendRequestState.SENDING).build();
         MockHttpServletRequest request = new MockHttpServletRequest();
         given(jwtService.extractUsernameFromToken(request)).willReturn(Optional.of(requestUsername));
         given(userRepository.findByUsername(requestUsername)).willReturn(Optional.of(requestUser));
         given(userRepository.findByUsername(receiptUsername)).willReturn(Optional.of(receiptUser));
-        given(friendRepository.findByRequestUserAndReceiptUser(requestUser, receiptUser))
+        given(friendRequestRepository.findByRequestUserAndReceiptUser(
+                requestUser, receiptUser))
                 .willReturn(Optional.of(friendRequested));
 
         /* when */
         friendService.deleteFriendRequest(request, receiptUsername);
 
         /* then */
-        assertThat(friendRequested.getState()).isEqualTo(FriendState.REMOVED);
+        assertThat(friendRequested.getState()).isEqualTo(FriendRequestState.REMOVED);
     }
 
     @Test
@@ -182,26 +192,27 @@ class FriendServiceTest {
                 .oauth("github")
                 .githubToken("gho4321")
                 .build();
-        Friend friendRequested = Friend.builder().requestUser(requestUser).receiptUser(receiptUser)
-                .state(FriendState.SENDING).build();
-        List<Friend> friends = List.of(friendRequested);
+        FriendRequest friendRequested = FriendRequest.builder().requestUser(requestUser).receiptUser(receiptUser)
+                .state(FriendRequestState.SENDING).build();
+        List<FriendRequest> friends = List.of(friendRequested);
         MockHttpServletRequest request = new MockHttpServletRequest();
-        GetFriendOutDto dto = new GetFriendOutDto();
+        GetFriendRequestOutDto dto = new GetFriendRequestOutDto();
         dto.setUsername(requestUser.getUsername());
         dto.setEmail(requestUser.getEmail());
-        dto.setState(FriendState.SENDING);
+        dto.setState(FriendRequestState.SENDING);
         given(jwtService.extractUsernameFromToken(request)).willReturn(Optional.of(receiptUsername));
         given(userRepository.findByUsername(receiptUsername)).willReturn(Optional.of(receiptUser));
-        given(friendRepository.findByReceiptUser(receiptUser)).willReturn(Optional.of(friends));
-        given(friendMapper.toGetFriendOutDto(requestUser, FriendState.SENDING)).willReturn(dto);
+        given(friendRequestRepository.findByReceiptUser(receiptUser)).willReturn(Optional.of(friends));
+        given(friendMapper.toGetFriendOutDto(requestUser,
+                FriendRequestState.SENDING)).willReturn(dto);
 
         /* when */
-        List<GetFriendOutDto> dtos = friendService.getReceiptUser(request, null);
+        List<GetFriendRequestOutDto> dtos = friendService.getReceiptUser(request, null);
 
         /* then */
         assertThat(dtos).hasSize(1);
-        GetFriendOutDto dto0 = dtos.get(0);
+        GetFriendRequestOutDto dto0 = dtos.get(0);
         assertThat(dto0.getUsername()).isEqualTo(requestUser.getUsername());
-        assertThat(dto0.getState()).isEqualTo(FriendState.SENDING);
+        assertThat(dto0.getState()).isEqualTo(FriendRequestState.SENDING);
     }
 }

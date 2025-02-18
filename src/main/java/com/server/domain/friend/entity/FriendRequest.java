@@ -6,7 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import com.server.domain.friend.enums.FriendState;
+import com.server.domain.friend.enums.FriendRequestState;
 import com.server.domain.user.entity.User;
 import com.server.global.error.code.FriendErrorCode;
 import com.server.global.error.exception.BusinessException;
@@ -37,9 +37,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "friends", uniqueConstraints = {
+@Table(name = "friend_request", uniqueConstraints = {
         @UniqueConstraint(columnNames = { "request_user_id", "receipt_user_id" }) })
-public class Friend {
+public class FriendRequest {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -57,7 +57,7 @@ public class Friend {
     @Column(name = "state")
     @Enumerated(EnumType.STRING)
     @Setter
-    private FriendState state;
+    private FriendRequestState state;
 
     @Column(name = "created_at", nullable = false)
     @CreationTimestamp

@@ -12,8 +12,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.server.domain.friend.dto.GetFriendOutDto;
-import com.server.domain.friend.enums.FriendState;
+import com.server.domain.friend.dto.GetFriendListOutDto;
+import com.server.domain.friend.dto.GetFriendRequestOutDto;
+import com.server.domain.friend.enums.FriendRequestState;
 import com.server.domain.friend.service.FriendService;
 import com.server.global.dto.ApiResponseDto;
 
@@ -43,12 +44,12 @@ public class FriendController {
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/request")
-    @Operation(summary = "친구 내역 조회", description = "사용자 기준 신청 보낸 내역")
-    public ApiResponseDto<List<GetFriendOutDto>> getFriendRequest(
-            @RequestParam(required = false) FriendState state,
+    @Operation(summary = "친구 신청 내역 조회", description = "사용자 기준 신청 보낸 내역")
+    public ApiResponseDto<List<GetFriendRequestOutDto>> getFriendRequest(
+            @RequestParam(required = false) FriendRequestState state,
             HttpServletRequest request) {
-        List<GetFriendOutDto> getUserOutDtos = friendService.getRequestUser(request, state);
-        return ApiResponseDto.success(HttpStatus.OK.value(), getUserOutDtos);
+        List<GetFriendRequestOutDto> getFriendRequestOutDtos = friendService.getRequestUser(request, state);
+        return ApiResponseDto.success(HttpStatus.OK.value(), getFriendRequestOutDtos);
     }
 
     @ResponseStatus(HttpStatus.OK)
@@ -63,10 +64,10 @@ public class FriendController {
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/receipt")
-    @Operation(summary = "친구 내역 조회", description = "사용자 기준 신청 받은 내역")
-    public ApiResponseDto<List<GetFriendOutDto>> getFriendReceipt(HttpServletRequest request,
-            @RequestParam(required = false) FriendState state) {
-        List<GetFriendOutDto> getUserOutDtos = friendService.getReceiptUser(request, state);
+    @Operation(summary = "친구 신청 내역 조회", description = "사용자 기준 신청 받은 내역")
+    public ApiResponseDto<List<GetFriendRequestOutDto>> getFriendReceipt(HttpServletRequest request,
+            @RequestParam(required = false) FriendRequestState state) {
+        List<GetFriendRequestOutDto> getUserOutDtos = friendService.getReceiptUser(request, state);
         return ApiResponseDto.success(HttpStatus.OK.value(), getUserOutDtos);
     }
 
@@ -78,5 +79,13 @@ public class FriendController {
         String receiptUsername = friendService.acceptFriendRequest(requestUsername, request);
         return ApiResponseDto.success(HttpStatus.CREATED.value(), String.format(
                 "The friend request from User '%s' to User '%s' has been accepted.", requestUsername, receiptUsername));
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("")
+    @Operation(summary = "친구 내역 조회", description = "사용자 기준 승인된 친구 내역")
+    public ApiResponseDto<List<GetFriendListOutDto>> getFriends(HttpServletRequest request) {
+        List<GetFriendListOutDto> getFriendListOutDtos = friendService.getFriends(request);
+        return ApiResponseDto.success(HttpStatus.OK.value(), getFriendListOutDtos);
     }
 }
