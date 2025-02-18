@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: server
-          image: ghcr.io/co-co-gong/co-co-gong-server:46136a7f1095fb70c77391e27f753fe94187f001
+          image: ghcr.io/co-co-gong/co-co-gong-server:324199fbe6d7072aab95543d9cf1077da5c755ff
           env:
             - name: SERVER_PORT
               value: "8080"
